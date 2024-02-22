@@ -1,2 +1,2 @@
 # simple-reddit-clone
-[Portfolio Purposes] A simple reddit clone built with 
+A simple reddit clone build with javascript, nodejs, react and sqllite
