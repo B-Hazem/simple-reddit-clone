@@ -5,7 +5,7 @@
   "description": "the backend for simple-reddit-clone, using typescript, expressjs, drizzle, sqllite and more?",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node ./src/server.ts",
+    "start": "npx ts-node --esm src/server.ts",
     "dev": "npx nodemon",
     "build": "npx tsc"
   },
@@ -26,9 +26,13 @@
   },
   "dependencies": {
     "@libsql/client": "^0.5.1",
+    "@lucia-auth/adapter-drizzle": "^1.0.2",
+    "arctic": "^1.2.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "drizzle-orm": "^0.29.4",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "lucia": "^3.0.1",
+    "oslo": "^1.1.2"
   }
 }

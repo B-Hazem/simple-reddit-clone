@@ -1,7 +1,8 @@
 import { desc, lt, sql } from "drizzle-orm";
+// @deno-types="npm:@types/express@4.17.21"
 import express from "express";
-import { db } from "../db/db";
-import { postTable } from "../db/schema";
+import { db } from "../db/db.ts";
+import { postTable } from "../db/schema.ts";
 const postRouter = express.Router()
 
 

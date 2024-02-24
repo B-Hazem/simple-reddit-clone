@@ -16,3 +16,17 @@ export const subRedditTable = sqliteTable("subreddits", {
     description: text("description").notNull(),
     createdAt: text("createdAt").default(sql`CURRENT_TIMESTAMP`)
 })
+
+export const userTable = sqliteTable("user", {
+    id: text("id").primaryKey(),
+    githubId: integer("github_id").unique(),
+    username: text("username").notNull()
+})
+
+export const sessionTable = sqliteTable("session", {
+	id: text("id").notNull().primaryKey(),
+	userId: text("user_id")
+		.notNull()
+		.references(() => userTable.id),
+	expiresAt: integer("expires_at").notNull()
+});

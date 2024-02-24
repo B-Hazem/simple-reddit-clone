@@ -1,10 +1,10 @@
 import {drizzle} from "drizzle-orm/libsql"
 import { createClient } from "@libsql/client"
-import 'dotenv/config'
+import "https://deno.land/x/dotenv/load.ts";
 
 const client = createClient({
-    url: process.env.DB_URL!,
-    authToken: process.env.DB_TOKEN,
+    url: Deno.env.get("DB_URL")!,
+    authToken: Deno.env.get("DB_TOKEN"),
 })
 
 export const db = drizzle(client)
