@@ -13,7 +13,6 @@ const authRouter = express.Router()
 authRouter.get("/login/github", async (req, res) => {
     const state = generateState()
     const url = await github.createAuthorizationURL(state)
-    console.log(url)
     res
         .header({
             "Location": url.toString(),
@@ -97,7 +96,6 @@ authRouter.get("/login/github/callback", async (req, res) => {
 
 
     } catch(e) {
-        console.log(e)
         if (e instanceof OAuth2RequestError) {
             return res.status(400).json({message: "Error in authentication (invalid credentials, etc) "})
         }
