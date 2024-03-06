@@ -42,10 +42,16 @@ postRouter.post("/", validateRequest , async (req, res) => {
             message: "You're not logged in. You need to log in to create posts"
         })
     }
+    
+    const title = req.body.newTitle as string
+    if(title.length > 300) return res.status(400).json({message: "The title of your post is too long (limit is 300 characters)"})
+
+    const content = req.body.newContent 
+    if(content.length > 10000) return res.status(400).json({message: "The content of your post is too long (limit is 10 000 characters)"})
 
     const r = await db.insert(postTable).values({
-        title: req.body.newTitle,
-        content: req.body.newContent,
+        title: title,
+        content: content,
         subReddit: req.body.subreddit
     }).onConflictDoNothing()
 

@@ -28,7 +28,7 @@ export default function Posts({endpoint}: {endpoint: MainPageEndPoint | string})
         {data?.map((p: any) => (
         <>
             <Post key={p.id} title={p.title} content={p.content} upVotes={p.upVotes} downVotes={p.downVotes} subReddit={p.subReddit} />
-            <hr className="my-8" />
+            <hr className="my-4" />
         </>
         ))}
     </>)

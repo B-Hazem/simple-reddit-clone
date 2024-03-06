@@ -6,9 +6,10 @@ import useSWR from "swr";
 import fetcher from "../misc/fetcher";
 
 
-type SubRedditInfo = {
+export type SubRedditInfo = {
     name: string,
     description: string,
+    createdAt: string
 }
 
 export function SubRedditRoute() {
@@ -27,7 +28,7 @@ export function SubRedditRoute() {
                     <>
                         <div className="flex items-baseline flex-row gap-4 h-12 mb-2">
                             <h1 className="font-extrabold text-2xl">{data?.name}</h1>
-                            <p className="font-thin">{data?.description}</p>
+                            <p className="font-thin break-words w-[100%]">{data?.description}</p>
                         </div>
                         <NewPost subReddit={subRedditName!}/>
                         

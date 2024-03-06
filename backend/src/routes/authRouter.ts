@@ -2,7 +2,7 @@
 import express from "express";
 import { db } from "../db/db.ts";
 import { OAuth2RequestError, generateState } from "arctic";
-import { github, lucia } from "../auth/auth.ts";
+import { github, lucia, validateRequest } from "../auth/auth.ts";
 import { serializeCookie, parseCookies } from "oslo/cookie"
 import { userTable } from "../db/schema.ts";
 import { eq } from "drizzle-orm";
@@ -63,13 +63,13 @@ authRouter.get("/login/github/callback", async (req, res) => {
             return res
                 .status(302)
                 .header({
-                    "Location": "/",
+                    // "Location": "/",
                     "Set-Cookie": sessionCookie.serialize()
                 })
                 .json({
                     message: `Yay! Existing user ${userResult.login} is logged in`
                 })
-                .redirect("/")
+                // .redirect("/")
         }
 
         const userId = generateId(15)
@@ -86,13 +86,13 @@ authRouter.get("/login/github/callback", async (req, res) => {
         return res
             .status(302)
             .header({
-                "Location": "/",
+                // "Location": "/",
                 "Set-Cookie": sessionCookie.serialize()
             })
             .json({
                 message: `Yay! New user(${userResult.login}) created and logged in`
             })
-            .redirect("/")
+            // .redirect("/")
 
 
     } catch(e) {
@@ -102,6 +102,14 @@ authRouter.get("/login/github/callback", async (req, res) => {
 
         return res.status(500).json({message: "Error happend during authentification which doesn't come from OAuth"})
     }
+})
+
+authRouter.get("/checkAuth", validateRequest, (req, res) => {
+    if(res.locals.session) {
+        return res.status(300).json("ho")
+    }
+
+    return res.status(401).json("ha")
 })
 
 export default authRouter

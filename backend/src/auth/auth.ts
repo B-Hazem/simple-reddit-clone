@@ -56,7 +56,7 @@ export const validateRequest = async (req: Request, res: Response, next: NextFun
     if(!result.session) {
         res.header("Set-Cookie", lucia.createBlankSessionCookie().serialize())
     }
-
+    
     res.locals.user = result.user
     res.locals.session = result.session
 

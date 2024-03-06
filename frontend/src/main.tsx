@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import Root from './routes/root'
 import { SubRedditRoute } from './routes/subredditRoute'
 import { Toaster } from 'sonner'
+import { IsAuthWrapper } from './components/IsAuthWrapper'
 
 const router = createBrowserRouter([
   {
@@ -23,7 +24,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <div className="m-0 p-0">
           <a href='/' className="font-semibold text-3xl m-0 p-0">simple-reddit-clone</a>
       </div>
-      <RouterProvider router={router} />
+
+      <IsAuthWrapper children={<RouterProvider router={router} />}/>      
+      
     </main>
 
   </React.StrictMode>,

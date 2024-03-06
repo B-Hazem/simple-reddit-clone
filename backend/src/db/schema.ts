@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import {integer, text, sqliteTable} from "drizzle-orm/sqlite-core";
+import {integer, text, sqliteTable, primaryKey} from "drizzle-orm/sqlite-core";
 
 export const postTable = sqliteTable("posts", {
     id: integer("id").primaryKey({autoIncrement: true}).unique(),
@@ -21,6 +21,25 @@ export const userTable = sqliteTable("user", {
     id: text("id").primaryKey(),
     githubId: integer("github_id").unique(),
     username: text("username").notNull()
+})
+
+export const upVotesUserTables = sqliteTable("upVotes_Users", {
+    user: text("user").references(() => userTable.id, {onDelete: "cascade"}),
+    upVotedPost: text("upVotedPost").references(() => postTable.id, {onDelete: "cascade"})
+}, (table) => {
+    return {
+        pk : primaryKey({columns: [table.user, table.upVotedPost]})
+    }
+})
+
+
+export const downVotesUserTables = sqliteTable("downVotes_Users", {
+    user: text("user").references(() => userTable.id, {onDelete: "cascade"}),
+    downVotedPost: text("downVotedPost").references(() => postTable.id, {onDelete: "cascade"})
+}, (table) => {
+    return {
+        pk : primaryKey({columns: [table.user, table.downVotedPost]})
+    }
 })
 
 export const sessionTable = sqliteTable("session", {

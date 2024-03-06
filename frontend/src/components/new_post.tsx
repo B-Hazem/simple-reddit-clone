@@ -56,7 +56,7 @@ export function NewPost({subReddit} : {subReddit: string}) {
         <>
             <Dialog>
                 <DialogTrigger asChild>
-                    <button className="bg-primary text-background rounded p-3">Create a post</button>
+                    <button className="bg-primary text-sm text-background rounded p-3 min-w-28 h-12">Create a post</button>
                 </DialogTrigger>
                 <DialogContent>
                     <DialogHeader>

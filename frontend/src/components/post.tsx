@@ -10,7 +10,7 @@ export default function Post({title, content, upVotes, downVotes, subReddit} :
     return (
         <>
             <div className="">
-                <div className="flex justify-between font-semibold mb-2">
+                <div className="flex justify-between gap-5 font-semibold mb-2">
                     <div className="flex items-baseline gap-3">
                         <h2 className="text-xl">{title}</h2>
                         <Link relative="path" to={subReddit == location.pathname.split("/")[1] ? "" : subReddit} className="font-thin">r/{subReddit}</Link>
@@ -20,7 +20,7 @@ export default function Post({title, content, upVotes, downVotes, subReddit} :
                         <button className="flex flex-row-reverse items-center gap-1"><FaArrowDown />{downVotes}</button>
                     </div>
                 </div>
-                <div>
+                <div className="mt-6">
                     <p>{content}</p>
                 </div>
             </div>
