@@ -1,30 +1,34 @@
-import { ReactNode, useContext, useEffect, useState } from "react"
+import { ReactNode, useEffect, useState } from "react"
 import { IsAuthContext } from "../misc/IsAuthContext"
 
 export function IsAuthWrapper({children}: {children: ReactNode}) {
-    const authCtx = useContext(IsAuthContext)
     const [isAuth, setIsAuth] = useState(false)
 
+    const searchParams = new URL(document.location as any).searchParams
+
     useEffect(() => {
-        if(authCtx == null || authCtx == false) {
+        if(searchParams.has("login") || searchParams.has("logout")) {
             console.log("checking your shit")
-            fetch("http://localhost:3000/api/checkAuth", {credentials: "include"})
+            fetch("http://localhost:3000/api/checkAuth", {credentials: "include", cache: "no-cache"})
             .then((res) => {
                 console.log(res.status)
                 if(res.status == 401) {
-                    console.log("not logged in")
+                    localStorage.removeItem("isLoggedIn")
                     setIsAuth(false)
                 } else {
-                    console.log("logged in")
+                    localStorage.setItem("isLoggedIn", "true")
                     setIsAuth(true)
                 }
             })
             .catch((err) => {
                 console.error(err)
+                localStorage.removeItem("isLoggedIn")
                 setIsAuth(false)
             })
-
         }
+
+        console.log(localStorage.getItem("isLoggedIn"))
+        setIsAuth(localStorage.getItem("isLoggedIn") ? true : false)
 
     }, [])
 

@@ -7,4 +7,5 @@ const client = createClient({
     authToken: Deno.env.get("DB_TOKEN"),
 })
 
+
 export const db = drizzle(client)

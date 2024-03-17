@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import Post from "./post";
 import { MainPageEndPoint } from "../routes/root";
 import useSWR from "swr";
@@ -27,7 +26,7 @@ export default function Posts({endpoint}: {endpoint: MainPageEndPoint | string})
     return (<>
         {data?.map((p: any) => (
         <>
-            <Post key={p.id} title={p.title} content={p.content} upVotes={p.upVotes} downVotes={p.downVotes} subReddit={p.subReddit} />
+            <Post key={p.id} id={p.id} title={p.title} content={p.content} subReddit={p.subReddit} />
             <hr className="my-4" />
         </>
         ))}

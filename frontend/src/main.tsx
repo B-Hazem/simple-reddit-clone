@@ -9,12 +9,13 @@ import { IsAuthWrapper } from './components/IsAuthWrapper'
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Root />
+    element: <Root />,
   },
   {
     path: "/:subRedditName",
     element: <SubRedditRoute />
   }
+
 ])
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -25,7 +26,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <a href='/' className="font-semibold text-3xl m-0 p-0">simple-reddit-clone</a>
       </div>
 
-      <IsAuthWrapper children={<RouterProvider router={router} />}/>      
+      <IsAuthWrapper children=<RouterProvider router={router} /> />     
       
     </main>
 

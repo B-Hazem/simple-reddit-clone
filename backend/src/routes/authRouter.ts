@@ -66,10 +66,10 @@ authRouter.get("/login/github/callback", async (req, res) => {
                     // "Location": "/",
                     "Set-Cookie": sessionCookie.serialize()
                 })
-                .json({
-                    message: `Yay! Existing user ${userResult.login} is logged in`
-                })
-                // .redirect("/")
+                // .json({
+                //     message: `Yay! Existing user ${userResult.login} is logged in`
+                // })
+                .redirect("http://localhost:5173/?login")
         }
 
         const userId = generateId(15)
@@ -89,10 +89,10 @@ authRouter.get("/login/github/callback", async (req, res) => {
                 // "Location": "/",
                 "Set-Cookie": sessionCookie.serialize()
             })
-            .json({
-                message: `Yay! New user(${userResult.login}) created and logged in`
-            })
-            // .redirect("/")
+            // .json({
+            //     message: `Yay! New user(${userResult.login}) created and logged in`
+            // })
+            .redirect("http://localhost:5173/?login")
 
 
     } catch(e) {
@@ -110,6 +110,16 @@ authRouter.get("/checkAuth", validateRequest, (req, res) => {
     }
 
     return res.status(401).json("ha")
+})
+
+authRouter.get("/logout", validateRequest , async (req, res) => {
+    if(!res.locals.session) return res.status(401).json({message: "Already logged out"})
+
+    await lucia.invalidateUserSessions(res.locals.session.id)
+
+    return res.header({
+        "Set-Cookie": lucia.createBlankSessionCookie().serialize()
+    }).redirect("http://localhost:5173/?logout")
 })
 
 export default authRouter

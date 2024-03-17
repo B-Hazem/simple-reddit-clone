@@ -12,6 +12,7 @@ votesRouter.post("/up", validateRequest, async (req, res) => {
         return res.status(400).json({message: "You can't upvote a post if you're not connected"})
     }
 
+    if(!req.body.postId) return res.status(400).json({message: "postId is missing from body data"})
     const postId = req.body.postId
 
     const upVotedPosts = await db.select().from(upVotesUserTables).where(and(
@@ -67,11 +68,20 @@ votesRouter.post("/up", validateRequest, async (req, res) => {
     res.status(300).json({message: "Should work??"})
 })
 
+
+votesRouter.get("/:postId", async (req, res) => {
+    const postId = +req.params.postId
+    const result = (await db.select({upVotes: postTable.upVotes, downVotes: postTable.downVotes}).from(postTable).where(eq(postTable.id, postId)))[0]
+
+    return res.status(300).json(result)
+})
+
 votesRouter.post("/down", validateRequest, async (req, res) => {
     if(!res.locals.session || !res.locals.user) {
         return res.status(400).json({message: "You can't downvote a post if you're not connected"})
     }
 
+    if(!req.body.postId) return res.status(400).json({message: "postId is missing from body data"})
     const postId = req.body.postId
 
     const upVotedPosts = await db.select().from(upVotesUserTables).where(and(

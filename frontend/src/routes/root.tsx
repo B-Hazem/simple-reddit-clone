@@ -6,6 +6,7 @@ import { Login } from "../components/login";
 import { IsAuthContext } from "../misc/IsAuthContext";
 import { SubReddits } from "../components/SubReddits";
 import { NewSub } from "../components/new_sub";
+import { Logout } from "../components/logout";
 
 export enum MainPageEndPoint {
     Recent = "recent",
@@ -37,7 +38,12 @@ export default function Root() {
                             <p className="font-semibold">All Subs</p>
                         </button>
                     </div>
-                    {isAuthCtx ? <NewSub /> : <Login />}
+                    
+                    <div className="flex gap-4 items-baseline">
+                        {isAuthCtx ? <Logout /> : ""}
+                        {isAuthCtx ? <NewSub /> : <Login />}
+
+                    </div>
                 </div>
                 <div className="mt-8">
                     {endpoint == MainPageEndPoint.AllSubs ? <SubReddits /> : <Posts endpoint={endpoint}/>}
