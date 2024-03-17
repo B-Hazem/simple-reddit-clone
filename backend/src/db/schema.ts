@@ -4,6 +4,7 @@ import {integer, text, sqliteTable, primaryKey} from "drizzle-orm/sqlite-core";
 export const postTable = sqliteTable("posts", {
     id: integer("id").primaryKey({autoIncrement: true}).unique(),
     title: text("title").notNull(),
+    authorName: text("authorName"),
     content: text("content").notNull(),
     subReddit: text("subReddit").references(() => subRedditTable.name),
     upVotes: integer("upVotes").default(0),
@@ -14,6 +15,7 @@ export const postTable = sqliteTable("posts", {
 export const subRedditTable = sqliteTable("subreddits", {
     name: text("name").primaryKey().unique().notNull(),
     description: text("description").notNull(),
+    creatorId: text("creatorId").references(() => userTable.id),
     createdAt: text("createdAt").default(sql`CURRENT_TIMESTAMP`)
 })
 

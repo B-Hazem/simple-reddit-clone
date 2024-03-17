@@ -18,10 +18,20 @@ postRouter.get("/recent", async (req, res) => {
 postRouter.get("/:subRedditName", async (req, res) => {
     const subredditName = req.params.subRedditName
     
-    await new Promise(res => setTimeout(res, 3000))
+    const r = await db.select(
+        {
+            id: postTable.id,
+            title: postTable.title,
+            upVotes: postTable.upVotes,
+            downVotes: postTable.downVotes,
+            createdAt: postTable.createdAt,
+            subReddit: postTable.subReddit,
+            content: postTable.content,
+            authorName: postTable.authorName
+        }
 
-    const r = await db.select().from(postTable).where(eq(postTable.subReddit, subredditName)).orderBy(desc(postTable.createdAt))
-
+    ).from(postTable).where(eq(postTable.subReddit, subredditName)).orderBy(desc(postTable.createdAt))
+    
     res.json(r)
 })
 
@@ -52,7 +62,8 @@ postRouter.post("/", validateRequest , async (req, res) => {
     const r = await db.insert(postTable).values({
         title: title,
         content: content,
-        subReddit: req.body.subreddit
+        subReddit: req.body.subreddit,
+        authorName: res.locals.user?.username
     }).onConflictDoNothing()
 
     if (r.rowsAffected > 0) {

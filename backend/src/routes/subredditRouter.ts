@@ -35,7 +35,8 @@ subRedditRouter.post("/", validateRequest, async (req, res) => {
 
     const result = await db.insert(subRedditTable).values({
         name: name,
-        description: description
+        description: description,
+        creatorId: res.locals.user?.id
     }).onConflictDoNothing()
 
     if(result.rowsAffected > 0) {

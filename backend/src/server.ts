@@ -6,6 +6,7 @@ import * as mod from "https://deno.land/std@0.219.0/dotenv/mod.ts";
 import postRouter from "./routes/postsRouter.ts"
 import subRedditRouter from "./routes/subredditRouter.ts"
 import authRouter from "./routes/authRouter.ts"
+import userRouter from "./routes/userRouter.ts"
 import votesRouter from "./routes/votesRouter.ts"
 import { Session, User } from "lucia";
 import { validateRequest } from "./auth/auth.ts";
@@ -28,6 +29,7 @@ app.use("/api/posts", postRouter)
 app.use("/api", authRouter)
 app.use("/api/subreddits", subRedditRouter)
 app.use("/api/votes", votesRouter)
+app.use("/api/users", userRouter)
 
 
 app.get("/", (req, res) => {

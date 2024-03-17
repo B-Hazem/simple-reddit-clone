@@ -12,6 +12,7 @@ export type PostInfo = {
     subReddit: string,
     upVotes: number,
     downVotes: number,
+    authorName: string
 }
 
 export default function Posts({endpoint}: {endpoint: MainPageEndPoint | string}) {
@@ -26,7 +27,7 @@ export default function Posts({endpoint}: {endpoint: MainPageEndPoint | string})
     return (<>
         {data?.map((p: any) => (
         <>
-            <Post key={p.id} id={p.id} title={p.title} content={p.content} subReddit={p.subReddit} />
+            <Post key={p.id} id={p.id} title={p.title} content={p.content} authorName={p.authorName} subReddit={p.subReddit} />            
             <hr className="my-4" />
         </>
         ))}

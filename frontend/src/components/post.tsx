@@ -5,8 +5,8 @@ import useSWR from "swr";
 import fetcher from "../misc/fetcher";
 
 
-export default function Post({title, content, subReddit, id} : 
-    {title: string, content: string, subReddit: string, id: number}) {
+export default function Post({title, content, subReddit, id, authorName} : 
+    {title: string, content: string, subReddit: string, id: number, authorName: string}) {
     
     const location = useLocation()
     
@@ -47,16 +47,17 @@ export default function Post({title, content, subReddit, id} :
     return (
         <>
             <div className="">
-                <div className="flex justify-between gap-5 font-semibold mb-2">
+                <div className="flex justify-between gap-5 font-semibold">
                     <div className="flex items-baseline gap-3">
                         <h2 className="text-xl">{title}</h2>
-                        <Link relative="path" to={subReddit == location.pathname.split("/")[1] ? "" : subReddit} className="font-thin">r/{subReddit}</Link>
+                        <Link relative="path" to={subReddit == location.pathname.split("/")[1] ? "" : subReddit} className="font-thin underline">r/{subReddit}</Link>
                     </div>
                     <div className="flex gap-3">
                         <button onClick={() => handleUpVote()} className="flex flex-row-reverse items-center gap-1"><FaArrowUp />{!data ? '?' : data.upVotes}</button>
                         <button onClick={() => handleDownVote()} className="flex flex-row-reverse items-center gap-1"><FaArrowDown />{!data ? '?' : data.downVotes}</button>
                     </div>
                 </div>
+                <p className="font-thin text-sm mb-2">u/{authorName}</p>
                 <div className="mt-6">
                     <p>{content}</p>
                 </div>
