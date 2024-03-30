@@ -10,16 +10,14 @@ import {
 } from "../components/dialog"
 import { Label } from "../components/label";
 import { Input } from "../components/input";
-import { useContext, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { IsAuthContext } from "../misc/IsAuthContext";
 
 
 export function NewPost({subReddit} : {subReddit: string}) {
     const [newTitle, setNewTitle] = useState<string>("")
     const [newContent, setNewContent] = useState<string>("")
-    const isAuth = useContext(IsAuthContext)
 
 
     const handleSubmit = () => {

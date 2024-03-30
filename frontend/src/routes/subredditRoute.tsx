@@ -1,11 +1,12 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext } from "react";
 import { useParams } from "react-router-dom";
 import Posts from "../components/posts";
 import { NewPost } from "../components/new_post";
 import useSWR from "swr";
-import fetcher from "../misc/fetcher";
+import fetcher, { fetcherWithCookie } from "../misc/fetcher";
 import { IsAuthContext } from "../misc/IsAuthContext";
 import { Login } from "../components/login";
+import { Link } from "react-router-dom";
 
 
 export type SubRedditInfo = {
@@ -17,6 +18,7 @@ export type SubRedditInfo = {
 export function SubRedditRoute() {
     const {subRedditName} = useParams()
     const {data, isLoading} = useSWR<SubRedditInfo>(`http://localhost:3000/api/subreddits/${subRedditName}`, fetcher)
+    const isModerator = useSWR<{result: boolean}>(`http://localhost:3000/api/users/-1/moderator/${subRedditName}`, fetcherWithCookie)
 
     const isAuth = useContext(IsAuthContext)
 
@@ -32,7 +34,10 @@ export function SubRedditRoute() {
                             <p className="font-thin break-words w-[100%]">{data?.description}</p>
                         </div>
                         
-                        {isAuth ? <NewPost subReddit={subRedditName!}/> : <Login /> }
+                        <div className="flex gap-4 items-baseline">
+                            {isModerator.data?.result ? <Link to={`/${subRedditName}/admin`}>Admin</Link> : <></>}
+                            {isAuth ? <NewPost subReddit={subRedditName!}/> : <Login /> }
+                        </div>
                         
                         
                     </> 
@@ -43,7 +48,7 @@ export function SubRedditRoute() {
                     
                 </div>
                 <div className="mt-8">
-                    <Posts endpoint={subRedditName!} />
+                    <Posts endpoint={subRedditName!} isModerator={isModerator.data?.result!} />
                 </div>
             </div>
         </>

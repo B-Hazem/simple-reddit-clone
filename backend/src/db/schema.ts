@@ -9,7 +9,8 @@ export const postTable = sqliteTable("posts", {
     subReddit: text("subReddit").references(() => subRedditTable.name),
     upVotes: integer("upVotes").default(0),
     downVotes: integer("downVotes").default(0),
-    createdAt: text("createdAt").default(sql`CURRENT_TIMESTAMP`)
+    createdAt: text("createdAt").default(sql`CURRENT_TIMESTAMP`),
+    reportCount: integer("reportCount").default(0)
 })
 
 export const subRedditTable = sqliteTable("subreddits", {
@@ -22,7 +23,8 @@ export const subRedditTable = sqliteTable("subreddits", {
 export const userTable = sqliteTable("user", {
     id: text("id").primaryKey(),
     githubId: integer("github_id").unique(),
-    username: text("username").notNull()
+    username: text("username").notNull(),
+    role: text("role", {enum: ["super-admin", "user"]}).default("user")
 })
 
 export const upVotesUserTables = sqliteTable("upVotes_Users", {
@@ -41,6 +43,33 @@ export const downVotesUserTables = sqliteTable("downVotes_Users", {
 }, (table) => {
     return {
         pk : primaryKey({columns: [table.user, table.downVotedPost]})
+    }
+})
+
+export const moderatorsTable = sqliteTable("moderators", {
+    user: text("user").references(() => userTable.id, {onDelete: "cascade"}),
+    subreddit: text("subreddit").references(() => subRedditTable.name, {onDelete: "cascade"})
+}, (table) => {
+    return {
+        pk: primaryKey({columns: [table.user, table.subreddit]})
+    }
+})
+
+export const bannedUserTable = sqliteTable("bannedUsers", {
+    userId: text("userId").references(() => userTable.id, {onDelete: "cascade"}),
+    subreddit: text("subreddit").references(() => subRedditTable.name, {onDelete: "cascade"})
+}, (table) => {
+    return {
+        pk: primaryKey({columns: [table.userId, table.subreddit]})
+    }
+})
+
+export const reportedPost = sqliteTable("reportedPost", {
+    userId: text("userId").references(() => userTable.id, {onDelete: "cascade"}),
+    postId: integer("postId").references(() => postTable.id, {onDelete: "cascade"})
+}, (table) => {
+    return {
+        pk: primaryKey({columns: [table.userId, table.postId]})
     }
 })
 

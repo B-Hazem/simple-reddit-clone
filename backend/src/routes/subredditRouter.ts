@@ -1,9 +1,10 @@
-import { desc, eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 // @deno-types="npm:@types/express@4.17.21"
 import express from "express";
 import { db } from "../db/db.ts";
-import { postTable, subRedditTable } from "../db/schema.ts";
+import { postTable, subRedditTable, moderatorsTable, bannedUserTable } from "../db/schema.ts";
 import { validateRequest } from "../auth/auth.ts";
+import { userTable } from "../db/schema.ts";
 const subRedditRouter = express.Router()
 
 
@@ -17,8 +18,14 @@ subRedditRouter.get("/:name", async (req, res) => {
 
 subRedditRouter.get("/", async (req, res) => {
     const subs = await db.select().from(subRedditTable)
-
     res.json(subs)
+})
+
+subRedditRouter.get("/:name/moderators", async (req, res) => {
+    const moderators = await db.select({username: userTable.username, userId: userTable.id}).from(userTable)
+        .innerJoin(moderatorsTable, and(eq(moderatorsTable.user, userTable.id) ,eq(moderatorsTable.subreddit, req.params.name)))
+
+    res.status(200).json(moderators)
 })
 
 subRedditRouter.post("/", validateRequest, async (req, res) => {
@@ -40,10 +47,65 @@ subRedditRouter.post("/", validateRequest, async (req, res) => {
     }).onConflictDoNothing()
 
     if(result.rowsAffected > 0) {
+        try {
+            await db.insert(moderatorsTable).values({
+                user: res.locals.user!.id,
+                subreddit: name
+            })
+        } catch (e) {
+            await db.delete(subRedditTable).where(eq(subRedditTable.name, name))
+
+            return res.status(500).json({message: `Error while giving the moderator role to the creator, reverting everything \n ${e}`})
+        }
+
         return res.status(300).json({message: `Yay! r/${name} has been created`})
     } else {
         return res.status(400).json({message: "An error occured when you tried creating this subreddit. Perhaps the name is already taken??"})
     }
+
+})
+
+subRedditRouter.get("/ban/:subreddit", validateRequest, async (req, res) => {
+    if(!res.locals.session) return res.status(400).json({message: "You're not logged in"})
+
+    const check_moderator = await db.select().from(moderatorsTable).where(and(
+        eq(moderatorsTable.user, res.locals.user!.id),
+        eq(moderatorsTable.subreddit, req.params.subreddit)
+    ))
+    if(check_moderator.length == 0) return res.status(403).json({message: "You're not a moderator"})
+
+    const bannedUsername = await db.select({username: userTable.username, userId: userTable.id}).from(userTable)
+        .innerJoin(bannedUserTable, and(eq(bannedUserTable.userId, userTable.id), eq(bannedUserTable.subreddit, req.params.subreddit)))
+    
+
+    res.status(200).json(bannedUsername)
+    
+})
+
+subRedditRouter.post("/ban", validateRequest, async (req, res) => {
+    if(!res.locals.session) return res.status(400).json({message: "You're not logged in"})
+    if(req.body.subreddit == "" || req.body.username == "") return res.status(400).json({message: "need to provide a subreddit and username"})
+
+    const check_moderator = await db.select().from(moderatorsTable).where(and(
+        eq(moderatorsTable.user, res.locals.user!.id),
+        eq(moderatorsTable.subreddit, req.body.subreddit)
+    ))
+    if(check_moderator.length == 0) return res.status(403).json({message: "You're not a moderator"})
+    
+    const userId = await db.select({id: userTable.id}).from(userTable).where(eq(userTable.username, req.body.username))
+    if(userId.length == 0) return res.status(400).json({message: `User ${req.body.username} not found`})
+
+    try {
+        await db.insert(bannedUserTable).values({
+            userId: userId[0].id,
+            subreddit: req.body.subreddit
+        }).onConflictDoNothing()
+    } catch (e) {
+        return res.status(500).json({message: `An error occured when trying to ban user(${req.body.username} \n ${e}`})
+    }
+    
+    res.status(200).json({message: `User with id ${req.body.username} is banned from r/${req.body.subreddit}`})
+
 
 })
 

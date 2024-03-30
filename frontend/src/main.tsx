@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import Root from './routes/root'
 import { SubRedditRoute } from './routes/subredditRoute'
+import SubRedditAdminRoute from './routes/subredditAdminRoute'
 import { Toaster } from 'sonner'
 import { IsAuthWrapper } from './components/IsAuthWrapper'
 
@@ -14,6 +15,10 @@ const router = createBrowserRouter([
   {
     path: "/:subRedditName",
     element: <SubRedditRoute />
+  },
+  {
+    path: "/:subRedditName/admin",
+    element: <SubRedditAdminRoute />
   }
 
 ])

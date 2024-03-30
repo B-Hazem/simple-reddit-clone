@@ -20,6 +20,7 @@ export const lucia = new Lucia(adapter, {
         return {
             githubId: attributes.githubId,
             username: attributes.username,
+            role: attributes.role
         }
     }   
 })
@@ -29,7 +30,8 @@ declare module "lucia" {
         Lucia: typeof lucia
         DatabaseUserAttributes: {
             githubId: number,
-            username: string
+            username: string,
+            role: string
         }
     }
 }
@@ -42,7 +44,7 @@ export const validateRequest = async (req: Request, res: Response, next: NextFun
     const sessionId = lucia.readSessionCookie(req.headers.cookie ?? "")!
     
     if(!sessionId) {
-        console.log(sessionId)
+        // console.log(sessionId)
         res.locals.user =  null,
         res.locals.session = null
         return next()
