@@ -2,5 +2,5 @@
 .env
 package-lock.json
 /src/db/local_db*
-*.lock
+deno.lock
 /.vscode

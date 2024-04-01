@@ -44,7 +44,6 @@ export const validateRequest = async (req: Request, res: Response, next: NextFun
     const sessionId = lucia.readSessionCookie(req.headers.cookie ?? "")!
     
     if(!sessionId) {
-        // console.log(sessionId)
         res.locals.user =  null,
         res.locals.session = null
         return next()

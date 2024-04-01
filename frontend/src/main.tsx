@@ -6,6 +6,7 @@ import { SubRedditRoute } from './routes/subredditRoute'
 import SubRedditAdminRoute from './routes/subredditAdminRoute'
 import { Toaster } from 'sonner'
 import { IsAuthWrapper } from './components/IsAuthWrapper'
+import { PostRoute } from './routes/postRoute'
 
 const router = createBrowserRouter([
   {
@@ -19,6 +20,10 @@ const router = createBrowserRouter([
   {
     path: "/:subRedditName/admin",
     element: <SubRedditAdminRoute />
+  },
+  {
+    path: "/post/:postId",
+    element: <PostRoute/>
   }
 
 ])

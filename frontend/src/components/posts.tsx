@@ -18,6 +18,7 @@ export type PostInfo = {
 
 export default function Posts({endpoint, isModerator}: {endpoint: MainPageEndPoint | string, isModerator: boolean}) {
     // const [posts, setPosts] = useState<Array<PostInfo>>()
+    
     const {data, isLoading, mutate} = useSWR<PostInfo[]>(`http://localhost:3000/api/posts/${endpoint}`, fetcher)
 
 

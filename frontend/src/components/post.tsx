@@ -9,7 +9,7 @@ import { PostInfo } from "./posts";
 
 
 export default function Post({postInfo, isModerator, mutatePosts} : 
-    {postInfo: PostInfo, isModerator: boolean, mutatePosts: KeyedMutator<PostInfo[]>}) {
+    {postInfo: PostInfo, isModerator: boolean, mutatePosts: KeyedMutator<PostInfo[]> | null}) {
     
     const location = useLocation()
     
@@ -59,7 +59,7 @@ export default function Post({postInfo, isModerator, mutatePosts} :
             if(!res.ok) {
                 res.json().then(data => toast.error(data.message))
             }
-            mutatePosts()
+            mutatePosts!()
         })
     }
 
@@ -96,7 +96,7 @@ export default function Post({postInfo, isModerator, mutatePosts} :
             <div className="">
                 <div className="flex justify-between gap-5 font-semibold">
                     <div className="flex items-baseline gap-3">
-                        <h2 className="text-xl">{postInfo.title}</h2>
+                        <Link to={`/post/${postInfo.id}`} className="text-xl">{postInfo.title}</Link>
                         <Link relative="path" to={postInfo.subReddit == location.pathname.split("/")[1] ? "" : postInfo.subReddit} className="font-thin underline">r/{postInfo.subReddit}</Link>
                     </div>
                     <div className="flex gap-3">

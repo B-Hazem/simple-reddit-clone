@@ -73,6 +73,14 @@ export const reportedPost = sqliteTable("reportedPost", {
     }
 })
 
+export const commentTable = sqliteTable("comments", {
+    id: integer("id").primaryKey({autoIncrement: true}),
+    userId: text("userId").references(() => userTable.id, {onDelete: "cascade"}),
+    postId: integer("postId").references(() => postTable.id, {onDelete: "cascade"}),
+    comment: text("comment"),
+    createdAt: text("createdAt").default(sql`CURRENT_TIMESTAMP`)
+})
+
 export const sessionTable = sqliteTable("session", {
 	id: text("id").notNull().primaryKey(),
 	userId: text("user_id")

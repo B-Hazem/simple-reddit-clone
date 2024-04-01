@@ -2,7 +2,7 @@ import { desc, eq, and, sql, gt } from "drizzle-orm";
 // @deno-types="npm:@types/express@4.17.21"
 import express from "express";
 import { db } from "../db/db.ts";
-import { moderatorsTable, postTable, bannedUserTable } from "../db/schema.ts";
+import { moderatorsTable, postTable, bannedUserTable, commentTable, userTable } from "../db/schema.ts";
 import { validateRequest } from "../auth/auth.ts";
 import { reportedPost } from "../db/schema.ts";
 const postRouter = express.Router()
@@ -34,6 +34,14 @@ postRouter.get("/:subRedditName", async (req, res) => {
     ).from(postTable).where(eq(postTable.subReddit, subredditName)).orderBy(desc(postTable.createdAt))
     
     res.json(r)
+})
+
+postRouter.get("/single/:postId", async (req, res) => {
+    if(!req.params.postId) return res.status(500).json({message: "postId needs to be a number"})
+    const result = await db.select().from(postTable).where(eq(postTable.id, +req.params.postId))
+    
+
+    res.status(200).json(result)
 })
 
 // /api/posts/recent -> returns all posts since the beggining of the day ordered by most up voted 
@@ -130,6 +138,67 @@ postRouter.post("/report", validateRequest, async (req, res) => {
 
 
     res.status(200).json({message: "The post has been reported to all the moderators !"})
+})
+
+postRouter.get("/comment/:postId", async(req, res) => {
+    const result = await db.select({
+        id: commentTable.id,
+        username: userTable.username,
+        comment: commentTable.comment,
+        createdAt: commentTable.createdAt,
+    }).from(commentTable)
+        .where(eq(commentTable.postId, +req.params.postId))
+        .innerJoin(userTable, eq(userTable.id, commentTable.userId))
+        .orderBy(desc(commentTable.createdAt))
+
+    res.status(200).json(result)
+})
+
+postRouter.post("/comment", validateRequest, async (req, res) => {
+    if(!res.locals.session) return res.status(400).json({message: "You're not logged in"})
+    if(req.body.postId == "" || req.body.comment == "") return res.status(400).json({message: "Need to provide a postId and a comment"})
+
+    const posts_sub = await db.select({subreddit: postTable.subReddit}).from(postTable).where(eq(postTable.id, +req.body.postId))
+    if (posts_sub.length == 0) return res.status(500).json({message: "This postId doesn't exist"})
+    
+    const check_ban = await db.select().from(bannedUserTable).where(and(
+        eq(bannedUserTable.subreddit, posts_sub[0].subreddit!),
+        eq(bannedUserTable.userId, res.locals.user!.id)    
+    ))
+    if (check_ban.length > 0) return res.status(500).json({message: "You are banned from the subreddit's post"})
+    
+    try {
+        await db.insert(commentTable).values({
+            userId: res.locals.user!.id,
+            comment: req.body.comment,
+            postId: req.body.postId
+        })
+    } catch(e) {
+        return res.status(500).json({message: "An error occured when trying to comment this post"})
+    }
+
+    res.status(200).json({message: "You successfuly commented this post"})
+})
+
+postRouter.delete("/comment", validateRequest, async (req, res) => {
+    if(!res.locals.session) return res.status(400).json({message: "You're not logged in"})
+    if(req.body.commentId == "") return res.status(400).json({message: "Need to provide a commentId"})
+
+    const check_moderator = await db.select({userId: commentTable.userId}).from(commentTable)
+        .where(eq(commentTable.id, req.body.commentId))
+        .innerJoin(postTable, eq(commentTable.postId, postTable.id))
+        .innerJoin(moderatorsTable, and(eq(moderatorsTable.subreddit, postTable.subReddit), eq(moderatorsTable.user, res.locals.user!.id)))
+    
+    if(check_moderator.length == 0) return res.status(403).json({message: "You're not a moderator"})
+
+    try {
+        await db.delete(commentTable).where(eq(commentTable.id, req.body.commentId));
+    } catch(e) {
+        return res.status(500).json({message: "An error occured when trying to remove comment"})
+    }
+
+    res.status(200).json({message: "Comment successfuly removed"})
+
 })
 
 export default postRouter

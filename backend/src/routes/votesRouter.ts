@@ -50,7 +50,6 @@ votesRouter.post("/up", validateRequest, async (req, res) => {
             eq(downVotesUserTables.downVotedPost, postId)
         )) 
 
-        console.log("got rid of the down vote cause user trying to upvote a post they already down voted")
     }
 
     //increment post.upVotes count
@@ -118,7 +117,6 @@ votesRouter.post("/down", validateRequest, async (req, res) => {
             eq(upVotesUserTables.upVotedPost, postId)
         ))
     
-        console.log("removed up voted because user trying to downvote while already upvoted")
     }
 
     await db.run(sql`UPDATE ${postTable} SET downVotes = downVotes + 1 WHERE ${postTable.id} = ${postId}`)
