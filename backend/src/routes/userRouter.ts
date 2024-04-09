@@ -10,11 +10,21 @@ import {validateRequest} from "../auth/auth.ts"
 import { subRedditTable } from "../db/schema.ts";
 import { bannedUserTable } from "../db/schema.ts";
 
-userRouter.get("/:userId", async (req, res) => {
+userRouter.get("/getUsername/:userId", async (req, res) => {
     const result = await db.select({username: userTable.username}).from(userTable).where(eq(userTable.id, req.params.userId))
 
     res.status(200).json({
         username: result[0].username
+    })
+})
+
+userRouter.get("/getId/:username", async (req, res) => {
+    const result = await db.select({id: userTable.id}).from(userTable).where(eq(userTable.username, req.params.username))
+
+    console.log(req.params.username)
+
+    res.status(200).json({
+        userId: result[0].id
     })
 })
 

@@ -64,7 +64,7 @@ export const bannedUserTable = sqliteTable("bannedUsers", {
     }
 })
 
-export const reportedPost = sqliteTable("reportedPost", {
+export const reportedPostTable = sqliteTable("reportedPost", {
     userId: text("userId").references(() => userTable.id, {onDelete: "cascade"}),
     postId: integer("postId").references(() => postTable.id, {onDelete: "cascade"})
 }, (table) => {
@@ -79,6 +79,15 @@ export const commentTable = sqliteTable("comments", {
     postId: integer("postId").references(() => postTable.id, {onDelete: "cascade"}),
     comment: text("comment"),
     createdAt: text("createdAt").default(sql`CURRENT_TIMESTAMP`)
+})
+
+export const followedSubredditTable = sqliteTable("followedSubreddit", {
+    userId: text("userId").references(() => userTable.id, {onDelete: "cascade"}),
+    subreddit: text("subreddit").references(() => subRedditTable.name, {onDelete: "cascade"})
+}, (table) => {
+    return {
+        pk: primaryKey({columns: [table.userId, table.subreddit]})
+    }
 })
 
 export const sessionTable = sqliteTable("session", {

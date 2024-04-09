@@ -7,6 +7,7 @@ import fetcher, { fetcherWithCookie } from "../misc/fetcher";
 import { IsAuthContext } from "../misc/IsAuthContext";
 import { Login } from "../components/login";
 import { Link } from "react-router-dom";
+import { toast } from "sonner";
 
 
 export type SubRedditInfo = {
@@ -17,10 +18,48 @@ export type SubRedditInfo = {
 
 export function SubRedditRoute() {
     const {subRedditName} = useParams()
-    const {data, isLoading} = useSWR<SubRedditInfo>(`http://localhost:3000/api/subreddits/${subRedditName}`, fetcher)
+    const {data, isLoading} = useSWR<SubRedditInfo>(`http://localhost:3000/api/subreddits/info/${subRedditName}`, fetcher)
     const isModerator = useSWR<{result: boolean}>(`http://localhost:3000/api/users/-1/moderator/${subRedditName}`, fetcherWithCookie)
+    const {data: isFollowing, mutate: mutateIsFollowing} = useSWR<{result: boolean}>(`http://localhost:3000/api/subreddits/follow/${subRedditName}`, fetcherWithCookie)
+
 
     const isAuth = useContext(IsAuthContext)
+
+    const handleFollow = () => {
+        fetch("http://localhost:3000/api/subreddits/follow", {
+            credentials: "include", method: "POST",
+            body: JSON.stringify({subreddit: subRedditName}),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        }).then((res) => {
+            if(!res.ok) {
+                res.json().then(data => toast.error(data.message))
+                return
+            }
+            res.json().then(data => toast.success(data.message))
+
+            mutateIsFollowing()
+        })
+    }
+
+    const handleUnfollow = () => {
+        fetch("http://localhost:3000/api/subreddits/follow", {
+            credentials: "include", method: "DELETE",
+            body: JSON.stringify({subreddit: subRedditName}),
+            headers: {
+                "Content-Type": "application/json"
+            }
+        }).then((res) => {
+            if(!res.ok) {
+                res.json().then(data => toast.error(data.message))
+                return
+            }
+            res.json().then(data => toast.success(data.message))
+
+            mutateIsFollowing()
+        })
+    }
 
     return (
         <>
@@ -36,6 +75,10 @@ export function SubRedditRoute() {
                         
                         <div className="flex gap-4 items-baseline">
                             {isModerator.data?.result ? <Link to={`/${subRedditName}/admin`}>Admin</Link> : <></>}
+                            {isFollowing?.result ? 
+                              <button onClick={() => handleUnfollow()} className="flex items-baseline gap-2 bg-secondary rounded p-3">Unfollow</button>
+                            : <button onClick={() => handleFollow()} className="flex items-baseline gap-2 bg-secondary rounded p-3">Follow</button>}
+                            
                             {isAuth ? <NewPost subReddit={subRedditName!}/> : <Login /> }
                         </div>
                         

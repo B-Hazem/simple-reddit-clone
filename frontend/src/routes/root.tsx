@@ -11,7 +11,8 @@ import { Logout } from "../components/logout";
 export enum MainPageEndPoint {
     Recent = "recent",
     Hot = "hottest",
-    AllSubs = ""
+    AllSubs = 3,
+    FollowedSubs = 4
 }
 
 export default function Root() {
@@ -34,6 +35,10 @@ export default function Root() {
                         <button onClick={() => switchEndpoint(MainPageEndPoint.Recent)} className="flex items-baseline gap-2 bg-secondary rounded p-3">
                             <FaClockRotateLeft /> <p className="font-semibold">Recent</p>
                         </button>
+                        <button onClick={() => setEndpoint(MainPageEndPoint.FollowedSubs)} className="flex items-baseline gap-2 bg-secondary rounded p-3"> 
+                            <p className="font-semibold">Followed subs</p>
+                        </button>
+                        
                         <button onClick={() => setEndpoint(MainPageEndPoint.AllSubs)} className="flex items-baseline gap-2 bg-secondary rounded p-3"> 
                             <p className="font-semibold">All Subs</p>
                         </button>
@@ -46,7 +51,8 @@ export default function Root() {
                     </div>
                 </div>
                 <div className="mt-8">
-                    {endpoint == MainPageEndPoint.AllSubs ? <SubReddits /> : <Posts endpoint={endpoint}/>}
+                    {endpoint == MainPageEndPoint.AllSubs || endpoint == MainPageEndPoint.FollowedSubs ? 
+                        <SubReddits endpoint={endpoint}/> : <Posts isModerator={false} endpoint={endpoint}/>}
                 </div>
             </div>
         

@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import Root from './routes/root'
 import { SubRedditRoute } from './routes/subredditRoute'
+import { UserRoute } from './routes/userRoute'
 import SubRedditAdminRoute from './routes/subredditAdminRoute'
 import { Toaster } from 'sonner'
 import { IsAuthWrapper } from './components/IsAuthWrapper'
@@ -24,6 +25,10 @@ const router = createBrowserRouter([
   {
     path: "/post/:postId",
     element: <PostRoute/>
+  },
+  {
+    path: "/user/:userId",
+    element: <UserRoute />
   }
 
 ])

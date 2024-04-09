@@ -6,6 +6,24 @@ import { postTable, subRedditTable, upVotesUserTables, downVotesUserTables } fro
 import { validateRequest } from "../auth/auth.ts";
 const votesRouter = express.Router()
 
+votesRouter.get("/up/:userId", async (req, res) => {
+    const result = await db.select(
+        {
+            id: postTable.id,
+            title: postTable.title,
+            upVotes: postTable.upVotes,
+            downVotes: postTable.downVotes,
+            createdAt: postTable.createdAt,
+            subReddit: postTable.subReddit,
+            content: postTable.content,
+            authorName: postTable.authorName
+        }
+    ).from(upVotesUserTables).where(eq(upVotesUserTables.user, req.params.userId))
+    .innerJoin(postTable, eq(postTable.id, upVotesUserTables.upVotedPost))
+    
+    res.json(result)
+    
+})
 
 votesRouter.post("/up", validateRequest, async (req, res) => {
     if(!res.locals.session || !res.locals.user) {

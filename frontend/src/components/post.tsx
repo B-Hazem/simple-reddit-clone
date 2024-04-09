@@ -6,6 +6,7 @@ import useSWR, { KeyedMutator } from "swr";
 import fetcher from "../misc/fetcher";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./dropdown";
 import { PostInfo } from "./posts";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 
 
 export default function Post({postInfo, isModerator, mutatePosts} : 
@@ -15,6 +16,8 @@ export default function Post({postInfo, isModerator, mutatePosts} :
     
     const {data, mutate} = useSWR<{upVotes: number, downVotes: number}>(`http://localhost:3000/api/votes/${postInfo.id}`, fetcher)
 
+    const {data: authorId, isLoading: isAuthorIdLoading} = useSWR<{userId: string}>(`http://localhost:3000/api/users/getId/${postInfo.authorName}`, fetcher)
+    
     const handleUpVote = () => {
 
         fetch("http://localhost:3000/api/votes/up", {
@@ -40,7 +43,7 @@ export default function Post({postInfo, isModerator, mutatePosts} :
             "Content-Type": "application/json"
             }
         }).then((res) => {
-                if(res.status >= 400) {
+                if(res.status >= 400) { 
                     res.json().then(data => toast.error(data.message))
                     return
                 }
@@ -97,7 +100,7 @@ export default function Post({postInfo, isModerator, mutatePosts} :
                 <div className="flex justify-between gap-5 font-semibold">
                     <div className="flex items-baseline gap-3">
                         <Link to={`/post/${postInfo.id}`} className="text-xl">{postInfo.title}</Link>
-                        <Link relative="path" to={postInfo.subReddit == location.pathname.split("/")[1] ? "" : postInfo.subReddit} className="font-thin underline">r/{postInfo.subReddit}</Link>
+                        <Link to={`/${postInfo.subReddit}`} className="font-thin underline">r/{postInfo.subReddit}</Link>
                     </div>
                     <div className="flex gap-3">
                         <button onClick={() => handleUpVote()} className="flex flex-row-reverse items-center gap-1"><FaArrowUp />{!data ? '?' : data.upVotes}</button>
@@ -105,7 +108,10 @@ export default function Post({postInfo, isModerator, mutatePosts} :
                     </div>
                 </div>
                 <div className="flex justify-between items-baseline">
-                    <p className="font-thin text-sm mb-2">u/{postInfo.authorName}</p>
+                    {isAuthorIdLoading ? <AiOutlineLoading3Quarters className="animate-spin h-auto"/>
+                    : <Link to={`/user/${authorId?.userId}`} className="font-thin italic underline  text-sm mb-2">u/{postInfo.authorName}</Link> 
+                    }
+
 
                     <div className="flex gap-1">
                         {isModerator && postInfo.reportCount ? <p className="flex flex-row-reverse items-center text-red-300"><FaExclamation />{postInfo.reportCount}</p> : ""}

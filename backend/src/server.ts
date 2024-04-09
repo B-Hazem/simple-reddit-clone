@@ -46,6 +46,8 @@ app.get("/protected", validateRequest, (req, res) => {
     res.status(403).json({message: "refused"})
 })
 
+
+
 app.listen(Deno.env.get("PORT"), () => {
     console.log("listening to port " + Deno.env.get("PORT"))
 })

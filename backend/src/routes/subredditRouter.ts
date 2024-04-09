@@ -5,16 +5,19 @@ import { db } from "../db/db.ts";
 import { postTable, subRedditTable, moderatorsTable, bannedUserTable } from "../db/schema.ts";
 import { validateRequest } from "../auth/auth.ts";
 import { userTable } from "../db/schema.ts";
+import { followedSubredditTable } from "../db/schema.ts";
+
 const subRedditRouter = express.Router()
 
 
-subRedditRouter.get("/:name", async (req, res) => {
+subRedditRouter.get("/info/:name", async (req, res) => {
     const subredditName = req.params.name
 
     const subRedditInfo = (await db.select().from(subRedditTable).where(eq(subRedditTable.name, subredditName)))[0]
 
     res.json(subRedditInfo)
 })
+
 
 subRedditRouter.get("/", async (req, res) => {
     const subs = await db.select().from(subRedditTable)
@@ -109,5 +112,73 @@ subRedditRouter.post("/ban", validateRequest, async (req, res) => {
 
 })
 
+subRedditRouter.get("/follow", validateRequest, async (req, res) => {
+    if(!res.locals.session) return res.status(400).json({message: "You're not logged in"})
+
+    const result = await db.select({
+        name: subRedditTable.name,
+        description: subRedditTable.description,
+    }).from(followedSubredditTable).where(eq(followedSubredditTable.userId, res.locals.user!.id))
+        .innerJoin(subRedditTable, eq(subRedditTable.name, followedSubredditTable.subreddit))
+
+
+    res.status(200).json(result)
+})
+
+subRedditRouter.get("/follow/:subreddit", validateRequest, async (req, res) => {
+    if(!res.locals.session) return res.status(400).json({message: "You're not logged in"})
+
+    const result = await db.select({
+        name: followedSubredditTable.subreddit,
+    }).from(followedSubredditTable)
+        .where(
+            and(
+                eq(followedSubredditTable.userId, res.locals.user!.id),
+                eq(followedSubredditTable.subreddit, req.params.subreddit)
+            )
+    )
+
+    if(result.length == 0) {
+        return res.status(404).json({result: false})
+    }
+
+    res.status(200).json({result: true})
+})
+
+
+
+subRedditRouter.post("/follow", validateRequest, async (req, res) => {
+    if(!res.locals.session) return res.status(400).json({message: "You're not logged in"})
+    if(req.body.subreddit == "") return res.status(400).json({message: "Need to provide subreddit"})
+
+    try {
+        await db.insert(followedSubredditTable).values({
+            userId: res.locals.user!.id,
+            subreddit: req.body.subreddit
+        })
+    } catch (e) {
+        return res.status(500).json({message: "An error occured when trying to follow the subreddit"})
+    }
+
+    res.status(200).json({message: "Successfuly followed the subreddit"})
+
+})
+
+subRedditRouter.delete("/follow", validateRequest, async (req, res) => {
+    if(!res.locals.session) return res.status(400).json({message: "You're not logged in"})
+    if(req.body.subreddit == "") return res.status(400).json({message: "Need to provide subreddit"})
+
+    try {
+        await db.delete(followedSubredditTable).where(and(
+            eq(followedSubredditTable.userId, res.locals.user!.id),
+            eq(followedSubredditTable.subreddit, req.body.subreddit)
+        ))
+    } catch {
+        return res.status(500).json({message: "An error occured when trying to unfollow the subreddit"})
+    }
+
+    res.status(200).json({message: "You successfuly unfollowed the subreddit"})
+
+})
 
 export default subRedditRouter

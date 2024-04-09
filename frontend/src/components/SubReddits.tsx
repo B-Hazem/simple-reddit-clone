@@ -1,10 +1,15 @@
 import useSWR from "swr"
-import fetcher from "../misc/fetcher"
+import fetcher, { fetcherWithCookie } from "../misc/fetcher"
 import { SubRedditInfo } from "../routes/subredditRoute"
 import { Link } from "react-router-dom"
+import { MainPageEndPoint } from "../routes/root"
 
-export function SubReddits() {
-    const {data} = useSWR<SubRedditInfo[]>("http://localhost:3000/api/subreddits/", fetcher)
+export function SubReddits({endpoint}: {endpoint: MainPageEndPoint}) {
+    const {data} = useSWR<SubRedditInfo[]>(() => {
+        if(endpoint == MainPageEndPoint.AllSubs) return "http://localhost:3000/api/subreddits"
+        if(endpoint == MainPageEndPoint.FollowedSubs) return "http://localhost:3000/api/subreddits/follow"
+    }, fetcherWithCookie)
+
 
     return (<>
         {data?.map((sub) => <>

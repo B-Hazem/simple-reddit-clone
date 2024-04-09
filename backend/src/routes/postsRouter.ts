@@ -2,9 +2,9 @@ import { desc, eq, and, sql, gt } from "drizzle-orm";
 // @deno-types="npm:@types/express@4.17.21"
 import express from "express";
 import { db } from "../db/db.ts";
-import { moderatorsTable, postTable, bannedUserTable, commentTable, userTable } from "../db/schema.ts";
+import { moderatorsTable, postTable, bannedUserTable, commentTable, userTable, subRedditTable, followedSubredditTable } from "../db/schema.ts";
 import { validateRequest } from "../auth/auth.ts";
-import { reportedPost } from "../db/schema.ts";
+import { reportedPostTable } from "../db/schema.ts";
 const postRouter = express.Router()
 
 
@@ -40,6 +40,21 @@ postRouter.get("/single/:postId", async (req, res) => {
     if(!req.params.postId) return res.status(500).json({message: "postId needs to be a number"})
     const result = await db.select().from(postTable).where(eq(postTable.id, +req.params.postId))
     
+
+    res.status(200).json(result)
+})
+
+postRouter.get("/byAuthor/:userId", async (req, res) => {
+    const result = await db.select({
+        id: postTable.id,
+        title: postTable.title,
+        upVotes: postTable.upVotes,
+        downVotes: postTable.downVotes,
+        createdAt: postTable.createdAt,
+        subReddit: postTable.subReddit,
+        content: postTable.content,
+        authorName: postTable.authorName
+    }).from(postTable).innerJoin(userTable, eq(userTable.id, req.params.userId))
 
     res.status(200).json(result)
 })
@@ -123,15 +138,15 @@ postRouter.post("/report", validateRequest, async (req, res) => {
     if(!res.locals.session) return res.status(400).json({message: "You're not logged in"})
     if(req.body.postId == "") return res.status(400).json({message: "Need to provide a postId"})
 
-    const check_report = await db.select().from(reportedPost).where(and(
-        eq(reportedPost.userId, res.locals.user!.id),
-        eq(reportedPost.postId, req.body.postId)
+    const check_report = await db.select().from(reportedPostTable).where(and(
+        eq(reportedPostTable.userId, res.locals.user!.id),
+        eq(reportedPostTable.postId, req.body.postId)
     ))
     if(check_report.length > 0) {
         return res.status(401).json({message: "You have already reported that post"})
     }
     await db.run(sql`UPDATE ${postTable} SET reportCount = reportCount + 1 WHERE ${postTable.id} = ${req.body.postId}`)
-    await db.insert(reportedPost).values({
+    await db.insert(reportedPostTable).values({
         userId: res.locals.user!.id,
         postId: req.body.postId
     })
@@ -179,6 +194,8 @@ postRouter.post("/comment", validateRequest, async (req, res) => {
 
     res.status(200).json({message: "You successfuly commented this post"})
 })
+
+
 
 postRouter.delete("/comment", validateRequest, async (req, res) => {
     if(!res.locals.session) return res.status(400).json({message: "You're not logged in"})
