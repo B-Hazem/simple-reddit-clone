@@ -9,16 +9,29 @@ const postRouter = express.Router()
 
 
 // /api/posts/recent -> returns posts ordered by most recent
-//Should prob limit server-side the number of result for perf concern??
+//TODO: Verify if pages and limit are numbers
 postRouter.get("/recent", async (req, res) => {
-    const r = await db.select().from(postTable).orderBy(desc(postTable.createdAt))
+    const pages = req.query.pages
+    const limit = req.query.limit
+
+
+    if(!pages || !limit) {
+        return res.status(500).json({message: "You need to provide query ?limit= and ?pages="})
+    }
+
+    const r = await db.select().from(postTable).orderBy(desc(postTable.createdAt)).limit(+limit).offset(+limit * +pages)
 
     res.json(r)
 })
 
-postRouter.get("/:subRedditName", async (req, res) => {
+//TODO: check for NaN in query params limit & pages
+postRouter.get("/fromSubreddit/:subRedditName", async (req, res) => {
     const subredditName = req.params.subRedditName
-    
+    const limit = req.query.limit
+    const pages  = req.query.pages
+
+    if(!limit || !pages) return res.status(400).json({message: "you need to specify query params limit & pages"})
+
     const r = await db.select(
         {
             id: postTable.id,
@@ -32,6 +45,7 @@ postRouter.get("/:subRedditName", async (req, res) => {
         }
 
     ).from(postTable).where(eq(postTable.subReddit, subredditName)).orderBy(desc(postTable.createdAt))
+    .limit(+limit).offset(+limit * +pages)
     
     res.json(r)
 })
@@ -59,7 +73,8 @@ postRouter.get("/byAuthor/:userId", async (req, res) => {
     res.status(200).json(result)
 })
 
-// /api/posts/recent -> returns all posts since the beggining of the day ordered by most up voted 
+// /api/posts/hottest -> returns all posts since the beggining of the day ordered by most up voted 
+//FIXME
 postRouter.get("/hottest", async (req, res) => {
     const r = await db.select().from(postTable)
     .where(
@@ -69,6 +84,7 @@ postRouter.get("/hottest", async (req, res) => {
     res.json(r)
 })
 
+//TODO: Check for empty title, content & subreddit
 postRouter.post("/", validateRequest , async (req, res) => {
 
     if(!res.locals.session) {
@@ -97,6 +113,11 @@ postRouter.post("/", validateRequest , async (req, res) => {
     }).onConflictDoNothing()
 
     if (r.rowsAffected > 0) {
+        await db.update(subRedditTable).set({
+            nbPost: sql`${subRedditTable.nbPost} + 1`
+        })
+        .where(eq(subRedditTable.name, req.body.subreddit))
+
         res.status(200).json("good")
     } else {
         res.status(400).json("bad")

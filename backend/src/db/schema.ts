@@ -17,7 +17,8 @@ export const subRedditTable = sqliteTable("subreddits", {
     name: text("name").primaryKey().unique().notNull(),
     description: text("description").notNull(),
     creatorId: text("creatorId").references(() => userTable.id),
-    createdAt: text("createdAt").default(sql`CURRENT_TIMESTAMP`)
+    createdAt: text("createdAt").default(sql`CURRENT_TIMESTAMP`),
+    nbPost: integer("nbPost").default(0)
 })
 
 export const userTable = sqliteTable("user", {

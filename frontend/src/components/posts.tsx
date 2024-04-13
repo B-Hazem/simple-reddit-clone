@@ -16,10 +16,18 @@ export type PostInfo = {
     reportCount: number
 }
 
-export default function Posts({endpoint, isModerator}: {endpoint: MainPageEndPoint | string, isModerator: boolean}) {
+//TODO: Fix loading transition
+export default function Posts({endpoint, isModerator, limit, pages}: 
+    {endpoint: MainPageEndPoint | string, isModerator: boolean, limit: number, pages: number}) {
     // const [posts, setPosts] = useState<Array<PostInfo>>()
-    
-    const {data, isLoading, mutate} = useSWR<PostInfo[]>(`http://localhost:3000/api/posts/${endpoint}`, fetcher)
+    1
+    const {data, isLoading, mutate} = useSWR<PostInfo[]>(() => {
+        if(endpoint == MainPageEndPoint.Recent || endpoint == MainPageEndPoint.Recent) {
+            return `http://localhost:3000/api/posts/${endpoint}?limit=${20}&pages=${0}`
+        } else {
+            return `http://localhost:3000/api/posts/fromSubreddit/${endpoint}?limit=${limit}&pages=${pages}`
+        }
+    }, fetcher)
 
 
     if (isLoading) return <div className="absolute w-fit top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 ">
@@ -30,7 +38,7 @@ export default function Posts({endpoint, isModerator}: {endpoint: MainPageEndPoi
         {data?.map((p: any) => (
         <>
             <Post key={p.id} postInfo={p} isModerator={isModerator} mutatePosts={mutate} />            
-            <hr className="my-4" />
+            <hr key={p.id*10} className="my-4" />
         </>
         ))}
     </>)

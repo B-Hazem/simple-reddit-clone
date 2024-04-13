@@ -15,6 +15,8 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 
 
+
+//TODO: Posts doesn't refresh when new post is made.
 export function NewPost({subReddit} : {subReddit: string}) {
     const [newTitle, setNewTitle] = useState<string>("")
     const [newContent, setNewContent] = useState<string>("")

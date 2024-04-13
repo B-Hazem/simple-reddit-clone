@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { useParams } from "react-router-dom";
 import Posts from "../components/posts";
 import { NewPost } from "../components/new_post";
@@ -9,11 +9,13 @@ import { Login } from "../components/login";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 
+const POSTS_LIMIT = 5
 
 export type SubRedditInfo = {
     name: string,
     description: string,
-    createdAt: string
+    createdAt: string,
+    nbPost: number
 }
 
 export function SubRedditRoute() {
@@ -21,9 +23,10 @@ export function SubRedditRoute() {
     const {data, isLoading} = useSWR<SubRedditInfo>(`http://localhost:3000/api/subreddits/info/${subRedditName}`, fetcher)
     const isModerator = useSWR<{result: boolean}>(`http://localhost:3000/api/users/-1/moderator/${subRedditName}`, fetcherWithCookie)
     const {data: isFollowing, mutate: mutateIsFollowing} = useSWR<{result: boolean}>(`http://localhost:3000/api/subreddits/follow/${subRedditName}`, fetcherWithCookie)
-
-
+    
     const isAuth = useContext(IsAuthContext)
+
+    const [pages, setPages] = useState(0)
 
     const handleFollow = () => {
         fetch("http://localhost:3000/api/subreddits/follow", {
@@ -91,8 +94,21 @@ export function SubRedditRoute() {
                     
                 </div>
                 <div className="mt-8">
-                    <Posts endpoint={subRedditName!} isModerator={isModerator.data?.result!} />
+                    <Posts endpoint={subRedditName!} isModerator={isModerator.data?.result!} limit={POSTS_LIMIT} pages={pages} />
                 </div>
+                
+                {
+                    isLoading ? <></>
+                    : <div className="flex gap-4 justify-center">
+                    {[...Array(Math.ceil(data?.nbPost! / POSTS_LIMIT))].map((x, i) => {
+                        return <button 
+                        key={i}
+                        onClick={() => setPages(i)}
+                        className={`${pages == i ? 'bg-primary' : 'bg-secondary'} rounded-full w-6 h-auto `}>{i+1}</button>
+                    })}
+                </div>
+                }
+                
             </div>
         </>
     )

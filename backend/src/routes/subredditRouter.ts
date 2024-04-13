@@ -9,7 +9,7 @@ import { followedSubredditTable } from "../db/schema.ts";
 
 const subRedditRouter = express.Router()
 
-
+//TODO: error handling in case of wrong :name
 subRedditRouter.get("/info/:name", async (req, res) => {
     const subredditName = req.params.name
 
@@ -139,7 +139,7 @@ subRedditRouter.get("/follow/:subreddit", validateRequest, async (req, res) => {
     )
 
     if(result.length == 0) {
-        return res.status(404).json({result: false})
+        return res.status(200).json({result: false})
     }
 
     res.status(200).json({result: true})

@@ -21,8 +21,6 @@ userRouter.get("/getUsername/:userId", async (req, res) => {
 userRouter.get("/getId/:username", async (req, res) => {
     const result = await db.select({id: userTable.id}).from(userTable).where(eq(userTable.username, req.params.username))
 
-    console.log(req.params.username)
-
     res.status(200).json({
         userId: result[0].id
     })

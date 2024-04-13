@@ -15,6 +15,7 @@ export enum MainPageEndPoint {
     FollowedSubs = 4
 }
 
+//TODO: Should I preload everything here so the exp is smoother ?
 export default function Root() {
     const [endpoint, setEndpoint] = useState<MainPageEndPoint>(MainPageEndPoint.Recent)
     const isAuthCtx = useContext(IsAuthContext)
