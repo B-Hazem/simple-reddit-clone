@@ -4,12 +4,13 @@ import useSWR from "swr"
 import { PostInfo } from "../components/posts"
 import fetcher from "../misc/fetcher"
 import Post from "../components/post"
+import { SERVER_URL } from "../main"
 
 export function UserRoute() {
     const {userId} = useParams()
     const [subPage, setSubPage] = useState(true)
-    const {data: postsData, mutate: mutatePost} = useSWR<PostInfo[]>(`http://localhost:3000/api/posts/byAuthor/${userId}`, fetcher)
-    const {data: upVotesData} = useSWR<PostInfo[]>(`http://localhost:3000/api/votes/up/${userId}`, fetcher)
+    const {data: postsData, mutate: mutatePost} = useSWR<PostInfo[]>(`${SERVER_URL}/api/posts/byAuthor/${userId}`, fetcher)
+    const {data: upVotesData} = useSWR<PostInfo[]>(`${SERVER_URL}/api/votes/up/${userId}`, fetcher)
 
 
     return <>
@@ -18,7 +19,7 @@ export function UserRoute() {
                 <h1 className="text-xl font-bold">B-Hazem</h1>
                 <div className="flex gap-4">
                     <button onClick={() => setSubPage(true)}
-                     aria-selected={subPage} className="flex items-baseline gap-2 bg-secondary aria-selected:bg-primary/80 rounded p-3">Latests posts</button>
+                    aria-selected={subPage} className="flex items-baseline gap-2 bg-secondary aria-selected:bg-primary/80 rounded p-3">Latests posts</button>
                     <button onClick={() => setSubPage(false)} 
                     aria-selected={!subPage} className="flex items-baseline gap-2 bg-secondary aria-selected:bg-primary/80 rounded p-3">Upvoted posts</button>
 

@@ -13,6 +13,8 @@ import { Input } from "../components/input";
 import { useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { SERVER_URL } from "../main";
+import { POSTS_LIMIT } from "../routes/subredditRoute";
 
 
 
@@ -28,7 +30,7 @@ export function NewPost({subReddit} : {subReddit: string}) {
             return
         }
 
-        fetch("http://localhost:3000/api/posts/",{
+        fetch(SERVER_URL + "/api/posts/",{
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -43,7 +45,7 @@ export function NewPost({subReddit} : {subReddit: string}) {
         }).then((e) => {
             console.log("something")
             if(e.status == 200) {
-                mutate(`http://localhost:3000/api/posts/${subReddit}`)
+                mutate(`${SERVER_URL}/api/posts/fromSubreddit/${subReddit}?limit=${POSTS_LIMIT}&pages=${0}`)
                 toast.success("You new post has been added")
             } else {
                 e.json().then((v) => {

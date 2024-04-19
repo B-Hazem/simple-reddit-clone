@@ -7,6 +7,7 @@ import fetcher from "../misc/fetcher";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "./dropdown";
 import { PostInfo } from "./posts";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import { SERVER_URL } from "../main";
 
 
 export default function Post({postInfo, isModerator, mutatePosts} : 
@@ -14,13 +15,13 @@ export default function Post({postInfo, isModerator, mutatePosts} :
     
     const location = useLocation()
     
-    const {data, mutate} = useSWR<{upVotes: number, downVotes: number}>(`http://localhost:3000/api/votes/${postInfo.id}`, fetcher)
+    const {data, mutate} = useSWR<{upVotes: number, downVotes: number}>(`${SERVER_URL}/api/votes/${postInfo.id}`, fetcher)
 
-    const {data: authorId, isLoading: isAuthorIdLoading} = useSWR<{userId: string}>(`http://localhost:3000/api/users/getId/${postInfo.authorName}`, fetcher)
+    const {data: authorId, isLoading: isAuthorIdLoading} = useSWR<{userId: string}>(`${SERVER_URL}/api/users/getId/${postInfo.authorName}`, fetcher)
     
     const handleUpVote = () => {
 
-        fetch("http://localhost:3000/api/votes/up", {
+        fetch(SERVER_URL + "/api/votes/up", {
             credentials: "include", method: "POST", 
             body: JSON.stringify({postId: postInfo.id}), 
             headers: {
@@ -36,7 +37,7 @@ export default function Post({postInfo, isModerator, mutatePosts} :
     }
 
     const handleDownVote = () => {
-        fetch("http://localhost:3000/api/votes/down", {
+        fetch(SERVER_URL + "/api/votes/down", {
             credentials: "include", method: "POST", 
             body: JSON.stringify({postId: postInfo.id}), 
             headers: {
@@ -52,7 +53,7 @@ export default function Post({postInfo, isModerator, mutatePosts} :
     }
 
     const handleDeletePost = () => {
-        fetch("http://localhost:3000/api/posts/delete", {
+        fetch(SERVER_URL + "/api/posts/delete", {
             credentials: "include", method: "POST",
             body: JSON.stringify({postId: postInfo.id, subreddit: postInfo.subReddit}),
             headers: {
@@ -67,7 +68,7 @@ export default function Post({postInfo, isModerator, mutatePosts} :
     }
 
     const handleBanUser = () => {
-        fetch("http://localhost:3000/api/subreddits/ban", {
+        fetch(SERVER_URL + "/api/subreddits/ban", {
             credentials: "include", method: "POST",
             body: JSON.stringify({username: postInfo.authorName, subreddit: postInfo.subReddit}),
             headers: {
@@ -81,7 +82,7 @@ export default function Post({postInfo, isModerator, mutatePosts} :
     }
 
     const handleReport = () => {
-        fetch("http://localhost:3000/api/posts/report", {
+        fetch(SERVER_URL + "/api/posts/report", {
             credentials: "include", method: "POST",
             body: JSON.stringify({postId: postInfo.id}),
             headers: {

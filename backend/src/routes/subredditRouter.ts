@@ -24,7 +24,7 @@ subRedditRouter.get("/", async (req, res) => {
     res.json(subs)
 })
 
-subRedditRouter.get("/:name/moderators", async (req, res) => {
+subRedditRouter.get("/moderators/:name", async (req, res) => {
     const moderators = await db.select({username: userTable.username, userId: userTable.id}).from(userTable)
         .innerJoin(moderatorsTable, and(eq(moderatorsTable.user, userTable.id) ,eq(moderatorsTable.subreddit, req.params.name)))
 
@@ -33,7 +33,7 @@ subRedditRouter.get("/:name/moderators", async (req, res) => {
 
 subRedditRouter.post("/", validateRequest, async (req, res) => {
     if(!res.locals.session) {
-        return res.status(402).json({message: "you're not allowed to create subreddits if you're not connected"})
+        return res.status(401).json({message: "you're not allowed to create subreddits if you're not connected"})
     }
     
     const name = req.body.newName as string
@@ -61,7 +61,7 @@ subRedditRouter.post("/", validateRequest, async (req, res) => {
             return res.status(500).json({message: `Error while giving the moderator role to the creator, reverting everything \n ${e}`})
         }
 
-        return res.status(300).json({message: `Yay! r/${name} has been created`})
+        return res.status(200).json({message: `Yay! r/${name} has been created`})
     } else {
         return res.status(400).json({message: "An error occured when you tried creating this subreddit. Perhaps the name is already taken??"})
     }
@@ -69,7 +69,7 @@ subRedditRouter.post("/", validateRequest, async (req, res) => {
 })
 
 subRedditRouter.get("/ban/:subreddit", validateRequest, async (req, res) => {
-    if(!res.locals.session) return res.status(400).json({message: "You're not logged in"})
+    if(!res.locals.session) return res.status(401).json({message: "You're not logged in"})
 
     const check_moderator = await db.select().from(moderatorsTable).where(and(
         eq(moderatorsTable.user, res.locals.user!.id),
@@ -86,7 +86,7 @@ subRedditRouter.get("/ban/:subreddit", validateRequest, async (req, res) => {
 })
 
 subRedditRouter.post("/ban", validateRequest, async (req, res) => {
-    if(!res.locals.session) return res.status(400).json({message: "You're not logged in"})
+    if(!res.locals.session) return res.status(401).json({message: "You're not logged in"})
     if(req.body.subreddit == "" || req.body.username == "") return res.status(400).json({message: "need to provide a subreddit and username"})
 
     const check_moderator = await db.select().from(moderatorsTable).where(and(
@@ -96,7 +96,7 @@ subRedditRouter.post("/ban", validateRequest, async (req, res) => {
     if(check_moderator.length == 0) return res.status(403).json({message: "You're not a moderator"})
     
     const userId = await db.select({id: userTable.id}).from(userTable).where(eq(userTable.username, req.body.username))
-    if(userId.length == 0) return res.status(400).json({message: `User ${req.body.username} not found`})
+    if(userId.length == 0) return res.status(404).json({message: `User ${req.body.username} not found`})
 
     try {
         await db.insert(bannedUserTable).values({
@@ -113,7 +113,7 @@ subRedditRouter.post("/ban", validateRequest, async (req, res) => {
 })
 
 subRedditRouter.get("/follow", validateRequest, async (req, res) => {
-    if(!res.locals.session) return res.status(400).json({message: "You're not logged in"})
+    if(!res.locals.session) return res.status(401).json({message: "You're not logged in"})
 
     const result = await db.select({
         name: subRedditTable.name,
@@ -126,7 +126,7 @@ subRedditRouter.get("/follow", validateRequest, async (req, res) => {
 })
 
 subRedditRouter.get("/follow/:subreddit", validateRequest, async (req, res) => {
-    if(!res.locals.session) return res.status(400).json({message: "You're not logged in"})
+    if(!res.locals.session) return res.status(401).json({message: "You're not logged in"})
 
     const result = await db.select({
         name: followedSubredditTable.subreddit,
@@ -148,7 +148,7 @@ subRedditRouter.get("/follow/:subreddit", validateRequest, async (req, res) => {
 
 
 subRedditRouter.post("/follow", validateRequest, async (req, res) => {
-    if(!res.locals.session) return res.status(400).json({message: "You're not logged in"})
+    if(!res.locals.session) return res.status(401).json({message: "You're not logged in"})
     if(req.body.subreddit == "") return res.status(400).json({message: "Need to provide subreddit"})
 
     try {
@@ -165,7 +165,7 @@ subRedditRouter.post("/follow", validateRequest, async (req, res) => {
 })
 
 subRedditRouter.delete("/follow", validateRequest, async (req, res) => {
-    if(!res.locals.session) return res.status(400).json({message: "You're not logged in"})
+    if(!res.locals.session) return res.status(401).json({message: "You're not logged in"})
     if(req.body.subreddit == "") return res.status(400).json({message: "Need to provide subreddit"})
 
     try {

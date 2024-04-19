@@ -9,6 +9,8 @@ import { Toaster } from 'sonner'
 import { IsAuthWrapper } from './components/IsAuthWrapper'
 import { PostRoute } from './routes/postRoute'
 
+export const SERVER_URL = import.meta.env.VITE_SERVER_URL
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -40,7 +42,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <div className="m-0 p-0">
           <a href='/' className="font-semibold text-3xl m-0 p-0">simple-reddit-clone</a>
       </div>
-
       <IsAuthWrapper children=<RouterProvider router={router} /> />     
       
     </main>

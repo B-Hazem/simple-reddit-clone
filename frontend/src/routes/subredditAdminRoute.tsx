@@ -1,18 +1,19 @@
-import { useEffect, useState } from "react"
-import useSWR, { mutate } from "swr"
+import { useState } from "react"
+import useSWR from "swr"
 import fetcher, { fetcherWithCookie } from "../misc/fetcher"
 import { useParams } from "react-router-dom"
 import Posts from "../components/posts"
 import { toast } from "sonner"
 import { TiDeleteOutline } from "react-icons/ti";
 import { FaUnlock } from "react-icons/fa6";
+import { SERVER_URL } from "../main"
 
 
 export default function SubRedditAdminRoute() {
     const {subRedditName} = useParams()
-    const {data} = useSWR<{result: boolean}>(`http://localhost:3000/api/users/-1/moderator/${subRedditName}`, fetcherWithCookie)
-    const {data: bannedUsers, mutate: mutateBannedUsers} = useSWR<{username: string, userId: string}[]>(`http://localhost:3000/api/subreddits/ban/${subRedditName}`, fetcherWithCookie)
-    const {data: moderators, mutate: mutateModerators} = useSWR<{username: string, userId: string}[]>(`http://localhost:3000/api/subreddits/${subRedditName}/moderators`, fetcher)
+    const {data} = useSWR<{result: boolean}>(`${SERVER_URL}/api/users/moderator/-1/${subRedditName}`, fetcherWithCookie)
+    const {data: bannedUsers, mutate: mutateBannedUsers} = useSWR<{username: string, userId: string}[]>(`${SERVER_URL}/api/subreddits/ban/${subRedditName}`, fetcherWithCookie)
+    const {data: moderators, mutate: mutateModerators} = useSWR<{username: string, userId: string}[]>(`${SERVER_URL}/api/subreddits/moderators/${subRedditName}`, fetcher)
 
     const [userId, setUserId] = useState("")
 
@@ -21,7 +22,7 @@ export default function SubRedditAdminRoute() {
         console.log(userId)
         if(userId == "") return toast.error("No user id")
 
-        fetch(`http://localhost:3000/api/users/${userId}/moderator`, {
+        fetch(`${SERVER_URL}/api/users/moderator/${userId}`, {
             credentials: "include", 
             body: JSON.stringify({subreddit: subRedditName}),
             method: "POST",
@@ -36,7 +37,7 @@ export default function SubRedditAdminRoute() {
     }
 
     const handleRemoveModerator = (_userId: string) => {
-        fetch(`http://localhost:3000/api/users/${_userId}/moderator`, {
+        fetch(`${SERVER_URL}/api/users/moderator/${_userId}`, {
             credentials: "include", 
             body: JSON.stringify({subreddit: subRedditName}),
             method: "DELETE",
@@ -51,7 +52,7 @@ export default function SubRedditAdminRoute() {
     }
 
     const handleUnban = (_userId: string) => {
-        fetch(`http://localhost:3000/api/users/${_userId}/unban`, {
+        fetch(`${SERVER_URL}/api/users/unban/${_userId}`, {
             credentials: "include", 
             body: JSON.stringify({subreddit: subRedditName}),
             method: "POST",
@@ -66,7 +67,7 @@ export default function SubRedditAdminRoute() {
     }
 
     const handleBan = () => {
-        fetch(`http://localhost:3000/api/users/${userId}/ban`, {
+        fetch(`${SERVER_URL}/api/users/ban/${userId}`, {
             credentials: "include", 
             body: JSON.stringify({subreddit: subRedditName}),
             method: "POST",
@@ -113,7 +114,7 @@ export default function SubRedditAdminRoute() {
                 <div>
                     <h1 className="text-xl font-bold mb-4">Reported posts</h1>
                     <div className="w-[75%] mx-auto">
-                        <Posts endpoint={`report/${subRedditName}`} isModerator={data.result} />
+                        <Posts endpoint={`report/${subRedditName}`} isModerator={data.result} pages={0} limit={15} />
                     </div>
                 </div>
                 

@@ -13,6 +13,7 @@ const authRouter = express.Router()
 authRouter.get("/login/github", async (req, res) => {
     const state = generateState()
     const url = await github.createAuthorizationURL(state)
+
     res
         .header({
             "Location": url.toString(),
@@ -21,7 +22,7 @@ authRouter.get("/login/github", async (req, res) => {
                 secure: Deno.env.get("ENV") === "production",
                 maxAge: 60*10,
                 path: "/"
-            })
+            }),
         })
         .status(302)
         .redirect(url.toString())
@@ -36,12 +37,13 @@ authRouter.get("/login/github/callback", async (req, res) => {
     const cookies = parseCookies(req.headers.cookie!)
     const stateCookie = cookies.get("github_oauth_state")
 
+
     // const url = new URL(req.url)
     const state = req.query.state as string
     const code = req.query.code as string
 
     if(!state || !stateCookie || !code || stateCookie !== state) {
-        return res.status(400).json({message: "damn we fucked"})
+        return res.status(500).json({message: "Auth Error"})
     }
 
     try {
@@ -69,7 +71,7 @@ authRouter.get("/login/github/callback", async (req, res) => {
                 // .json({
                 //     message: `Yay! Existing user ${userResult.login} is logged in`
                 // })
-                .redirect("http://localhost:5173/?login")
+                .redirect(Deno.env.get("CLIENT_URL")+"/?login")
         }
 
         const userId = generateId(15)
@@ -92,12 +94,10 @@ authRouter.get("/login/github/callback", async (req, res) => {
             // .json({
             //     message: `Yay! New user(${userResult.login}) created and logged in`
             // })
-            .redirect("http://localhost:5173/?login")
-
-
+            .redirect(Deno.env.get("CLIENT_URL")+"/?login")
     } catch(e) {
         if (e instanceof OAuth2RequestError) {
-            return res.status(400).json({message: "Error in authentication (invalid credentials, etc) "})
+            return res.status(401).json({message: "Error in authentication (invalid credentials, etc) "})
         }
 
         return res.status(500).json({message: "Error happend during authentification which doesn't come from OAuth"})
@@ -106,10 +106,10 @@ authRouter.get("/login/github/callback", async (req, res) => {
 
 authRouter.get("/checkAuth", validateRequest, (req, res) => {
     if(res.locals.session) {
-        return res.status(300).json("ho")
+        return res.status(200).json({message: "Is Connected"})
     }
 
-    return res.status(401).json("ha")
+    return res.status(401).json({message: "Is not connected"})
 })
 
 authRouter.get("/logout", validateRequest , async (req, res) => {
@@ -119,7 +119,7 @@ authRouter.get("/logout", validateRequest , async (req, res) => {
 
     return res.header({
         "Set-Cookie": lucia.createBlankSessionCookie().serialize()
-    }).redirect("http://localhost:5173/?logout")
+    }).redirect(Deno.env.get("CLIENT_URL")+"/?logout")
 })
 
 export default authRouter

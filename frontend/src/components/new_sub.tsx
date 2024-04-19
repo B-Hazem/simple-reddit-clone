@@ -4,6 +4,7 @@ import { Input } from "./input"
 import { Label } from "./label"
 import { toast } from "sonner"
 import { mutate } from "swr"
+import { SERVER_URL } from "../main"
 
 
 export function NewSub() {
@@ -19,7 +20,7 @@ export function NewSub() {
             return toast.error("You can't use spaces in names of a subreddit :/ ")
         }
 
-        fetch("http://localhost:3000/api/subreddits/",{
+        fetch(SERVER_URL + "/api/subreddits/",{
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -35,7 +36,7 @@ export function NewSub() {
                 return
             }
 
-            mutate("http://localhost:3000/api/subreddits/")
+            mutate(SERVER_URL + "/api/subreddits/")
             res.json().then(data => toast.success(data.message))
         })
     }

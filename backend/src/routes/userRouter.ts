@@ -26,7 +26,7 @@ userRouter.get("/getId/:username", async (req, res) => {
     })
 })
 
-userRouter.get("/:userId/moderator/:subreddit", validateRequest, async (req, res) => {
+userRouter.get("/moderator/:userId/:subreddit", validateRequest, async (req, res) => {
     if(!res.locals.session) {
         return res.status(403).json({result: false})
     }
@@ -53,9 +53,9 @@ userRouter.get("/:userId/moderator/:subreddit", validateRequest, async (req, res
     
 })
 
-userRouter.post("/:userId/moderator", validateRequest, async (req, res) => {
+userRouter.post("/moderator/:userId", validateRequest, async (req, res) => {
     if(!res.locals.session) {
-        return res.status(400).json({message: "You can't do this without being logged in"})
+        return res.status(401).json({message: "You can't do this without being logged in"})
     }
     if(!req.body.subreddit) return res.status(400).json({message: "subreddit needs to be sent"}) 
 
@@ -65,7 +65,7 @@ userRouter.post("/:userId/moderator", validateRequest, async (req, res) => {
     ))
     const check_creator = await db.select({creatorId: subRedditTable.creatorId}).from(subRedditTable).where(eq(subRedditTable.creatorId, res.locals.user!.id))
     if(check_moderator.length == 0 || check_creator.length == 0) {
-        return res.status(400).json({message: "You can't give moderator role to someone without being yourself moderator or subreddit's creator"})
+        return res.status(403).json({message: "You can't give moderator role to someone without being yourself moderator or subreddit's creator"})
     }
 
     const check_ban = await db.select().from(bannedUserTable).where(and(
@@ -74,7 +74,7 @@ userRouter.post("/:userId/moderator", validateRequest, async (req, res) => {
     ))
 
     if(check_ban.length > 0) {
-        return res.status(500).json({message: "You can't give moderator status to someone currently banned from your subreddit"})
+        return res.status(400).json({message: "You can't give moderator status to someone currently banned from your subreddit"})
     }
 
     try {
@@ -83,16 +83,16 @@ userRouter.post("/:userId/moderator", validateRequest, async (req, res) => {
             subreddit: req.body.subreddit
         })
     } catch (e) {
-        return res.status(500).json({message: `An error happend, you probably put the wrong userId`})
+        return res.status(400).json({message: `An error happend, you probably put the wrong userId`})
     }
 
     res.status(200).json({message: `Action successful`})
 
 })
 
-userRouter.delete("/:userId/moderator", validateRequest, async (req, res) => {
+userRouter.delete("/moderator/:userId", validateRequest, async (req, res) => {
     if(!res.locals.session) {
-        return res.status(400).json({message: "You can't do this without being logged in"})
+        return res.status(401).json({message: "You can't do this without being logged in"})
     }
     if(!req.body.subreddit) return res.status(400).json({message: "subreddit needs to be sent"}) 
 
@@ -101,28 +101,28 @@ userRouter.delete("/:userId/moderator", validateRequest, async (req, res) => {
         eq(moderatorsTable.subreddit, req.body.subreddit)   
     ))
     if(check_moderator.length == 0) {
-        return res.status(400).json({message: "You need to be a moderator to remove moderator status to someone"})
+        return res.status(403).json({message: "You need to be a moderator to remove moderator status to someone"})
     }
     
     const check_creator = await db.select({creatorId: subRedditTable.creatorId}).from(subRedditTable).where(eq(subRedditTable.creatorId, req.params.userId))
     if(check_creator.length > 0) {
-        return res.status(400).json({message: "You can't remove moderator status from the creator of the subreddit"})
+        return res.status(403).json({message: "You can't remove moderator status from the creator of the subreddit"})
     }
 
 
     try {
         await db.delete(moderatorsTable).where(and(eq(moderatorsTable.user, req.params.userId), eq(moderatorsTable.subreddit, req.body.subreddit)))
     } catch (e) {
-        return res.status(400).json({message: "An error happend while removing moderator"})
+        return res.status(500).json({message: "An error happend while removing moderator"})
     }
 
     res.status(200).json({message: "You successfuly removed moderator status to user"})
 
 })
 
-userRouter.post("/:userId/ban", validateRequest, async (req, res) => {
+userRouter.post("/ban/:userId", validateRequest, async (req, res) => {
     if(!res.locals.session) {
-        return res.status(400).json({message: "You can't do this without being logged in"})
+        return res.status(401).json({message: "You can't do this without being logged in"})
     }
     if(!req.body.subreddit) return res.status(400).json({message: "subreddit needs to be sent"}) 
 
@@ -131,8 +131,17 @@ userRouter.post("/:userId/ban", validateRequest, async (req, res) => {
         eq(moderatorsTable.subreddit, req.body.subreddit)   
     ))
     if(check_moderator.length == 0) {
-        return res.status(400).json({message: "You need to be a moderator to ban someone"})
+        return res.status(403).json({message: "You need to be a moderator to ban someone"})
     }
+
+    const check_creator = await db.select({creatorId: subRedditTable.creatorId})
+        .from(subRedditTable)
+        .where(eq(subRedditTable.name, req.body.subreddit))
+
+    if(check_creator[0].creatorId == req.params.userId) {
+        return res.status(403).json({message: " You can't ban the subreddit's creator"})
+    }
+
 
     try {
         await db.insert(bannedUserTable).values({
@@ -140,7 +149,7 @@ userRouter.post("/:userId/ban", validateRequest, async (req, res) => {
             subreddit: req.body.subreddit
         })
     } catch (e) {
-        return res.status(500).json({message: `An error occured when trying to ban user, check the userId \n`})
+        return res.status(400).json({message: `An error occured when trying to ban user, check the userId \n`})
     }
 
     try {
@@ -149,7 +158,7 @@ userRouter.post("/:userId/ban", validateRequest, async (req, res) => {
             eq(moderatorsTable.subreddit, req.body.subreddit)
         ))
     } catch (e) {
-        return res.status(500).json({message: "An error occured when trying to remove moderator status from the user"})
+        return res.status(400).json({message: "An error occured when trying to remove moderator status from the user"})
     }
     
     res.status(200).json({message: `User is successfly banned`})
@@ -157,9 +166,9 @@ userRouter.post("/:userId/ban", validateRequest, async (req, res) => {
 
 })
 
-userRouter.post("/:userId/unban", validateRequest, async (req, res) => {
+userRouter.post("/unban/:userId", validateRequest, async (req, res) => {
     if(!res.locals.session) {
-        return res.status(400).json({message: "You can't do this without being logged in"})
+        return res.status(401).json({message: "You can't do this without being logged in"})
     }
     if(!req.body.subreddit) return res.status(400).json({message: "subreddit needs to be sent"}) 
 
@@ -168,7 +177,7 @@ userRouter.post("/:userId/unban", validateRequest, async (req, res) => {
         eq(moderatorsTable.subreddit, req.body.subreddit)   
     ))
     if(check_moderator.length == 0) {
-        return res.status(400).json({message: "You need to be a moderator to unban someone"})
+        return res.status(403).json({message: "You need to be a moderator to unban someone"})
     }
 
     try {

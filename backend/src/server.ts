@@ -14,7 +14,7 @@ import bodyParser from "body-parser";
 
 
 const app = express()
-const whitelist = ["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:3000", "http://127.0.0.1:5173"]
+const whitelist = [Deno.env.get("CLIENT_URL"), Deno.env.get("SERVER_URL")]
 app.use(cors(
     {
         credentials: true,
@@ -30,21 +30,6 @@ app.use("/api", authRouter)
 app.use("/api/subreddits", subRedditRouter)
 app.use("/api/votes", votesRouter)
 app.use("/api/users", userRouter)
-
-
-app.get("/", (req, res) => {
-    res.redirect("http://localhost:5173")
-})
-
-app.get("/protected", validateRequest, (req, res) => {
-    if(res.locals.session)
-        return res.status(202).json({
-            message: "You're connected !",
-            user: res.locals.user
-        })
-    
-    res.status(403).json({message: "refused"})
-})
 
 
 

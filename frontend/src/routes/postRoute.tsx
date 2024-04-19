@@ -3,25 +3,26 @@ import useSWR from "swr"
 import { PostInfo } from "../components/posts"
 import Post from "../components/post"
 import fetcher, { fetcherWithCookie } from "../misc/fetcher"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { toast } from "sonner"
 import { BsThreeDots } from "react-icons/bs";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../components/dropdown"
+import { SERVER_URL } from "../main"
 
 
 
 export function PostRoute() {
     const {postId} = useParams()
     
-    const {data: postInfo, isLoading: postInfoIsLoading} = useSWR<PostInfo[]>(`http://localhost:3000/api/posts/single/${postId}`, fetcher)
-    const {data: comments, mutate: mutateComments} = useSWR<{id: number,comment: string, username: string, createdAt: string}[]>(`http://localhost:3000/api/posts/comment/${postId}`, fetcher)
-    const {data: isModerator} = useSWR<{result: boolean}>(() => "http://localhost:3000/api/users/-1/moderator/" + postInfo![0].subReddit, fetcherWithCookie );
+    const {data: postInfo, isLoading: postInfoIsLoading} = useSWR<PostInfo[]>(`${SERVER_URL}/api/posts/single/${postId}`, fetcher)
+    const {data: comments, mutate: mutateComments} = useSWR<{id: number,comment: string, username: string, createdAt: string}[]>(`${SERVER_URL}/api/posts/comment/${postId}`, fetcher)
+    const {data: isModerator} = useSWR<{result: boolean}>(() => SERVER_URL + "/api/users/moderator/-1" + postInfo![0].subReddit, fetcherWithCookie );
 
 
     const [comment, setComment] = useState("")
     
     const handleAddComment = () => {
-        fetch("http://localhost:3000/api/posts/comment/", {
+        fetch(SERVER_URL + "/api/posts/comment/", {
             credentials: "include", method: "POST", 
             body: JSON.stringify({postId: +postId!, comment: comment}), 
             headers: {
@@ -37,7 +38,7 @@ export function PostRoute() {
     }
 
     const handleDeleteComment = (commentId: number) => {
-        fetch("http://localhost:3000/api/posts/comment", {
+        fetch(SERVER_URL + "/api/posts/comment", {
             credentials: "include", method: "DELETE",
             body: JSON.stringify({commentId: commentId}),
             headers: {

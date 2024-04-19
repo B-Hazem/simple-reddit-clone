@@ -1,8 +1,9 @@
+import { SERVER_URL } from "../main";
 
 
 export function Logout() {
 
     return (
-        <a href="http://localhost:3000/api/logout" className="bg-primary rounded p-3 text-black">Logout</a>
+        <a href={SERVER_URL + "/api/logout"} className="bg-primary rounded p-3 text-black">Logout</a>
     )
 }

@@ -7,6 +7,16 @@ import { validateRequest } from "../auth/auth.ts";
 import { reportedPostTable } from "../db/schema.ts";
 const postRouter = express.Router()
 
+const PostOutput = {
+    id: postTable.id,
+    title: postTable.title,
+    upVotes: postTable.upVotes,
+    downVotes: postTable.downVotes,
+    createdAt: postTable.createdAt,
+    subReddit: postTable.subReddit,
+    content: postTable.content,
+    authorName: postTable.authorName
+}
 
 // /api/posts/recent -> returns posts ordered by most recent
 //TODO: Verify if pages and limit are numbers
@@ -16,7 +26,7 @@ postRouter.get("/recent", async (req, res) => {
 
 
     if(!pages || !limit) {
-        return res.status(500).json({message: "You need to provide query ?limit= and ?pages="})
+        return res.status(400).json({message: "You need to provide query ?limit= and ?pages="})
     }
 
     const r = await db.select().from(postTable).orderBy(desc(postTable.createdAt)).limit(+limit).offset(+limit * +pages)
@@ -24,51 +34,33 @@ postRouter.get("/recent", async (req, res) => {
     res.json(r)
 })
 
-//TODO: check for NaN in query params limit & pages
 postRouter.get("/fromSubreddit/:subRedditName", async (req, res) => {
     const subredditName = req.params.subRedditName
-    const limit = req.query.limit
-    const pages  = req.query.pages
+    const limit = parseInt(req.query.limit! as string)  
+    const pages  = parseInt(req.query.pages! as string)
 
-    if(!limit || !pages) return res.status(400).json({message: "you need to specify query params limit & pages"})
+    
+    if(isNaN(limit) || isNaN(pages)) return res.status(400).json({message: "you need to specify query params limit(int) & pages(int)"})
 
-    const r = await db.select(
-        {
-            id: postTable.id,
-            title: postTable.title,
-            upVotes: postTable.upVotes,
-            downVotes: postTable.downVotes,
-            createdAt: postTable.createdAt,
-            subReddit: postTable.subReddit,
-            content: postTable.content,
-            authorName: postTable.authorName
-        }
-
-    ).from(postTable).where(eq(postTable.subReddit, subredditName)).orderBy(desc(postTable.createdAt))
-    .limit(+limit).offset(+limit * +pages)
+    const r = await db.select(PostOutput).from(postTable).where(eq(postTable.subReddit, subredditName)).orderBy(desc(postTable.createdAt))
+    .limit(limit).offset(limit * pages)
     
     res.json(r)
 })
 
 postRouter.get("/single/:postId", async (req, res) => {
-    if(!req.params.postId) return res.status(500).json({message: "postId needs to be a number"})
-    const result = await db.select().from(postTable).where(eq(postTable.id, +req.params.postId))
+    if(!req.params.postId) return res.status(400).json({message: "need to provide postId in body"})
+    const postId = parseInt(req.params.postId as string)
+    if(isNaN(postId)) return res.status(400).json({message: "postId needs to be a number"})
+
+    const result = await db.select().from(postTable).where(eq(postTable.id, postId))
     
 
     res.status(200).json(result)
 })
 
 postRouter.get("/byAuthor/:userId", async (req, res) => {
-    const result = await db.select({
-        id: postTable.id,
-        title: postTable.title,
-        upVotes: postTable.upVotes,
-        downVotes: postTable.downVotes,
-        createdAt: postTable.createdAt,
-        subReddit: postTable.subReddit,
-        content: postTable.content,
-        authorName: postTable.authorName
-    }).from(postTable).innerJoin(userTable, eq(userTable.id, req.params.userId))
+    const result = await db.select(PostOutput).from(postTable).innerJoin(userTable, eq(userTable.id, req.params.userId))
 
     res.status(200).json(result)
 })
@@ -84,11 +76,10 @@ postRouter.get("/hottest", async (req, res) => {
     res.json(r)
 })
 
-//TODO: Check for empty title, content & subreddit
 postRouter.post("/", validateRequest , async (req, res) => {
 
     if(!res.locals.session) {
-        return res.status(400).json({
+        return res.status(401).json({
             message: "You're not logged in. You need to log in to create posts"
         })
     }
@@ -99,11 +90,11 @@ postRouter.post("/", validateRequest , async (req, res) => {
     ))
     if(check_ban.length > 0) return res.status(403).json({message: "You're ban from this subreddit, you cannot post here anymore"})
     
-    const title = req.body.newTitle as string
-    if(title.length > 300) return res.status(400).json({message: "The title of your post is too long (limit is 300 characters)"})
+    const title = (req.body.newTitle as string).trim()
+    if(title.length > 300 || title.length == 0) return res.status(400).json({message: "The title of your post is too long (limit is 300 characters) or its empty"})
 
-    const content = req.body.newContent 
-    if(content.length > 10000) return res.status(400).json({message: "The content of your post is too long (limit is 10 000 characters)"})
+    const content = (req.body.newContent as string).trim()
+    if(content.length > 10000 || title.length == 0) return res.status(400).json({message: "The content of your post is too long (limit is 10 000 characters) or its empty"})
 
     const r = await db.insert(postTable).values({
         title: title,
@@ -118,14 +109,14 @@ postRouter.post("/", validateRequest , async (req, res) => {
         })
         .where(eq(subRedditTable.name, req.body.subreddit))
 
-        res.status(200).json("good")
+        res.status(200).json({message: "Post created"})
     } else {
-        res.status(400).json("bad")
+        res.status(500).json({message: 'Post not created'})
     }
 })  
 
 postRouter.post("/delete", validateRequest, async (req, res) => {
-    if(!res.locals.session) return res.status(400).json({message: "You're not logged in"})
+    if(!res.locals.session) return res.status(401).json({message: "You're not logged in"})
     if(req.body.subreddit == "" || req.body.postId == "") return res.status(400).json({message: "need to provide a subreddit and postId"})
 
     const check_moderator = await db.select().from(moderatorsTable).where(and(
@@ -147,7 +138,9 @@ postRouter.post("/delete", validateRequest, async (req, res) => {
 
 })
 
-postRouter.get("/report/:subredditId", async (req, res) => {
+postRouter.get("/report/:subredditId", validateRequest, async (req, res) => {
+    if(!res.locals.session) return res.status(401).json({message: "You're not logged in"})
+    
     const reportedPost = await db.select().from(postTable).where(and(
         eq(postTable.subReddit, req.params.subredditId),
         gt(postTable.reportCount, 0)    
@@ -155,8 +148,9 @@ postRouter.get("/report/:subredditId", async (req, res) => {
     
     res.status(200).json(reportedPost)
 })
+
 postRouter.post("/report", validateRequest, async (req, res) => {
-    if(!res.locals.session) return res.status(400).json({message: "You're not logged in"})
+    if(!res.locals.session) return res.status(401).json({message: "You're not logged in"})
     if(req.body.postId == "") return res.status(400).json({message: "Need to provide a postId"})
 
     const check_report = await db.select().from(reportedPostTable).where(and(
@@ -164,7 +158,7 @@ postRouter.post("/report", validateRequest, async (req, res) => {
         eq(reportedPostTable.postId, req.body.postId)
     ))
     if(check_report.length > 0) {
-        return res.status(401).json({message: "You have already reported that post"})
+        return res.status(400).json({message: "You have already reported that post"})
     }
     await db.run(sql`UPDATE ${postTable} SET reportCount = reportCount + 1 WHERE ${postTable.id} = ${req.body.postId}`)
     await db.insert(reportedPostTable).values({
@@ -191,17 +185,17 @@ postRouter.get("/comment/:postId", async(req, res) => {
 })
 
 postRouter.post("/comment", validateRequest, async (req, res) => {
-    if(!res.locals.session) return res.status(400).json({message: "You're not logged in"})
+    if(!res.locals.session) return res.status(401).json({message: "You're not logged in"})
     if(req.body.postId == "" || req.body.comment == "") return res.status(400).json({message: "Need to provide a postId and a comment"})
 
     const posts_sub = await db.select({subreddit: postTable.subReddit}).from(postTable).where(eq(postTable.id, +req.body.postId))
-    if (posts_sub.length == 0) return res.status(500).json({message: "This postId doesn't exist"})
+    if (posts_sub.length == 0) return res.status(404).json({message: "This postId doesn't exist"})
     
     const check_ban = await db.select().from(bannedUserTable).where(and(
         eq(bannedUserTable.subreddit, posts_sub[0].subreddit!),
         eq(bannedUserTable.userId, res.locals.user!.id)    
     ))
-    if (check_ban.length > 0) return res.status(500).json({message: "You are banned from the subreddit's post"})
+    if (check_ban.length > 0) return res.status(403).json({message: "You are banned from the subreddit's post"})
     
     try {
         await db.insert(commentTable).values({
@@ -219,7 +213,7 @@ postRouter.post("/comment", validateRequest, async (req, res) => {
 
 
 postRouter.delete("/comment", validateRequest, async (req, res) => {
-    if(!res.locals.session) return res.status(400).json({message: "You're not logged in"})
+    if(!res.locals.session) return res.status(401).json({message: "You're not logged in"})
     if(req.body.commentId == "") return res.status(400).json({message: "Need to provide a commentId"})
 
     const check_moderator = await db.select({userId: commentTable.userId}).from(commentTable)

@@ -53,7 +53,8 @@ export default function Root() {
                 </div>
                 <div className="mt-8">
                     {endpoint == MainPageEndPoint.AllSubs || endpoint == MainPageEndPoint.FollowedSubs ? 
-                        <SubReddits endpoint={endpoint}/> : <Posts isModerator={false} endpoint={endpoint}/>}
+                        <SubReddits endpoint={endpoint}/> : <Posts isModerator={false} endpoint={endpoint} limit={20} pages={0}
+                        />}
                 </div>
             </div>
         

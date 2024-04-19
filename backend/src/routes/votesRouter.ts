@@ -27,7 +27,7 @@ votesRouter.get("/up/:userId", async (req, res) => {
 
 votesRouter.post("/up", validateRequest, async (req, res) => {
     if(!res.locals.session || !res.locals.user) {
-        return res.status(400).json({message: "You can't upvote a post if you're not connected"})
+        return res.status(401).json({message: "You can't upvote a post if you're not connected"})
     }
 
     if(!req.body.postId) return res.status(400).json({message: "postId is missing from body data"})
@@ -55,7 +55,7 @@ votesRouter.post("/up", validateRequest, async (req, res) => {
             eq(upVotesUserTables.upVotedPost, postId)
         ))
     
-        return res.status(300).json("up votes been removed cause already upvoted")
+        return res.status(200).json("up votes been removed cause already upvoted")
     }
 
     //Already down voted the post
@@ -82,7 +82,7 @@ votesRouter.post("/up", validateRequest, async (req, res) => {
         return res.status(400).json({message: `An error has occured during insertion (${e.code})`})
     }
 
-    res.status(300).json({message: "Should work??"})
+    res.status(200).json({message: "Post upvoted"})
 })
 
 
@@ -90,12 +90,12 @@ votesRouter.get("/:postId", async (req, res) => {
     const postId = +req.params.postId
     const result = (await db.select({upVotes: postTable.upVotes, downVotes: postTable.downVotes}).from(postTable).where(eq(postTable.id, postId)))[0]
 
-    return res.status(300).json(result)
+    return res.status(200).json(result)
 })
 
 votesRouter.post("/down", validateRequest, async (req, res) => {
     if(!res.locals.session || !res.locals.user) {
-        return res.status(400).json({message: "You can't downvote a post if you're not connected"})
+        return res.status(401).json({message: "You can't downvote a post if you're not connected"})
     }
 
     if(!req.body.postId) return res.status(400).json({message: "postId is missing from body data"})
@@ -121,7 +121,7 @@ votesRouter.post("/down", validateRequest, async (req, res) => {
             eq(downVotesUserTables.user, res.locals.user.id),
             eq(downVotesUserTables.downVotedPost, postId)
         )) 
-        return res.status(300).json("down votes been removed cause already upvoted")
+        return res.status(200).json("down votes been removed cause already upvoted")
     }
 
     //alreadt up voted the post
@@ -147,7 +147,7 @@ votesRouter.post("/down", validateRequest, async (req, res) => {
         return res.status(400).json({message: `An error has occured during insertion (${e.code})`})
     }
 
-    res.status(300).json({message: "Should work??"})
+    res.status(200).json({message: "Post downvoted"})
 })
 
 

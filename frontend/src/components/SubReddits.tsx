@@ -3,11 +3,12 @@ import fetcher, { fetcherWithCookie } from "../misc/fetcher"
 import { SubRedditInfo } from "../routes/subredditRoute"
 import { Link } from "react-router-dom"
 import { MainPageEndPoint } from "../routes/root"
+import { SERVER_URL } from "../main"
 
 export function SubReddits({endpoint}: {endpoint: MainPageEndPoint}) {
     const {data} = useSWR<SubRedditInfo[]>(() => {
-        if(endpoint == MainPageEndPoint.AllSubs) return "http://localhost:3000/api/subreddits"
-        if(endpoint == MainPageEndPoint.FollowedSubs) return "http://localhost:3000/api/subreddits/follow"
+        if(endpoint == MainPageEndPoint.AllSubs) return SERVER_URL + "/api/subreddits"
+        if(endpoint == MainPageEndPoint.FollowedSubs) return SERVER_URL + "/api/subreddits/follow"
     }, fetcherWithCookie)
 
 

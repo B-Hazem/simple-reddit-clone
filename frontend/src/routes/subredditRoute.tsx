@@ -8,8 +8,9 @@ import { IsAuthContext } from "../misc/IsAuthContext";
 import { Login } from "../components/login";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
+import { SERVER_URL } from "../main";
 
-const POSTS_LIMIT = 5
+export const POSTS_LIMIT = 5
 
 export type SubRedditInfo = {
     name: string,
@@ -20,16 +21,16 @@ export type SubRedditInfo = {
 
 export function SubRedditRoute() {
     const {subRedditName} = useParams()
-    const {data, isLoading} = useSWR<SubRedditInfo>(`http://localhost:3000/api/subreddits/info/${subRedditName}`, fetcher)
-    const isModerator = useSWR<{result: boolean}>(`http://localhost:3000/api/users/-1/moderator/${subRedditName}`, fetcherWithCookie)
-    const {data: isFollowing, mutate: mutateIsFollowing} = useSWR<{result: boolean}>(`http://localhost:3000/api/subreddits/follow/${subRedditName}`, fetcherWithCookie)
+    const {data, isLoading} = useSWR<SubRedditInfo>(`${SERVER_URL}/api/subreddits/info/${subRedditName}`, fetcher)
+    const isModerator = useSWR<{result: boolean}>(`${SERVER_URL}/api/users/moderator/-1/${subRedditName}`, fetcherWithCookie)
+    const {data: isFollowing, mutate: mutateIsFollowing} = useSWR<{result: boolean}>(`${SERVER_URL}/api/subreddits/follow/${subRedditName}`, fetcherWithCookie)
     
     const isAuth = useContext(IsAuthContext)
 
     const [pages, setPages] = useState(0)
 
     const handleFollow = () => {
-        fetch("http://localhost:3000/api/subreddits/follow", {
+        fetch(SERVER_URL + "/api/subreddits/follow", {
             credentials: "include", method: "POST",
             body: JSON.stringify({subreddit: subRedditName}),
             headers: {
@@ -47,7 +48,7 @@ export function SubRedditRoute() {
     }
 
     const handleUnfollow = () => {
-        fetch("http://localhost:3000/api/subreddits/follow", {
+        fetch(SERVER_URL + "/api/subreddits/follow", {
             credentials: "include", method: "DELETE",
             body: JSON.stringify({subreddit: subRedditName}),
             headers: {
@@ -78,11 +79,17 @@ export function SubRedditRoute() {
                         
                         <div className="flex gap-4 items-baseline">
                             {isModerator.data?.result ? <Link to={`/${subRedditName}/admin`}>Admin</Link> : <></>}
-                            {isFollowing?.result ? 
-                              <button onClick={() => handleUnfollow()} className="flex items-baseline gap-2 bg-secondary rounded p-3">Unfollow</button>
-                            : <button onClick={() => handleFollow()} className="flex items-baseline gap-2 bg-secondary rounded p-3">Follow</button>}
+
+                            {
+                                isAuth ? <>
+                                    {isFollowing?.result == true ? 
+                                    <button onClick={() => handleUnfollow()} className="flex items-baseline gap-2 bg-secondary rounded p-3">Unfollow</button>
+                                    : <button onClick={() => handleFollow()} className="flex items-baseline gap-2 bg-secondary rounded p-3">Follow</button>}
+                                </> : <></>
+                            }                            
                             
-                            {isAuth ? <NewPost subReddit={subRedditName!}/> : <Login /> }
+                            {isAuth ? <NewPost subReddit={subRedditName!}/> : <Login /> }                                
+
                         </div>
                         
                         
