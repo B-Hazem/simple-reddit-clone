@@ -1,6 +1,15 @@
 import {drizzle} from "drizzle-orm/libsql"
 import { createClient } from "@libsql/client"
-import "https://deno.land/x/dotenv/load.ts";
+
+import * as mod from "https://deno.land/std@0.219.0/dotenv/mod.ts";
+mod.loadSync({
+	envPath: Deno.env.get("ENV") == "prod" ? "./.env.prod" : "./.env.dev",
+	defaultsPath: null,
+	export: true
+})
+
+
+console.log(Deno.env.get("DB_URL"))
 
 const client = createClient({
     url: Deno.env.get("DB_URL")!,

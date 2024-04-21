@@ -1,20 +1,18 @@
-
 // @deno-types="npm:@types/express@4.17.21"
 import express from "express"
 import cors from "cors"
-import * as mod from "https://deno.land/std@0.219.0/dotenv/mod.ts";
 import postRouter from "./routes/postsRouter.ts"
 import subRedditRouter from "./routes/subredditRouter.ts"
 import authRouter from "./routes/authRouter.ts"
 import userRouter from "./routes/userRouter.ts"
 import votesRouter from "./routes/votesRouter.ts"
 import { Session, User } from "lucia";
-import { validateRequest } from "./auth/auth.ts";
-import bodyParser from "body-parser";
+import bodyParser from "npm:body-parser";
 
 
 const app = express()
 const whitelist = [Deno.env.get("CLIENT_URL"), Deno.env.get("SERVER_URL")]
+console.log(whitelist)
 app.use(cors(
     {
         credentials: true,

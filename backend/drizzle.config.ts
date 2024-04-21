@@ -1,12 +1,13 @@
 import { Config } from "drizzle-kit";
-import "dotenv/config"
+import dotenv from "dotenv"
+dotenv.config({path: process.env.ENV == "prod" ? ".env.prod" : ".env.dev"})
 
 export default {
   schema: "./src/db/schema.ts",
   out: "./src/db/migrations",
   driver: "turso",
   dbCredentials: {
-    url: 'http://127.0.0.1:8080',
+    url: process.env.DB_URL!,
     authToken: process.env.DB_TOKEN
   }
 } satisfies Config;
