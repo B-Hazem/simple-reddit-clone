@@ -1,5 +1,5 @@
-import {drizzle} from "drizzle-orm/libsql"
-import { createClient } from "@libsql/client"
+import {drizzle} from "npm:drizzle-orm/libsql"
+import { createClient } from "npm:@libsql/client"
 
 import * as mod from "https://deno.land/std@0.219.0/dotenv/mod.ts";
 mod.loadSync({

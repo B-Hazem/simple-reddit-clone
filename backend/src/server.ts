@@ -1,12 +1,12 @@
 // @deno-types="npm:@types/express@4.17.21"
-import express from "express"
-import cors from "cors"
+import express from "npm:express"
+import cors from "npm:cors"
 import postRouter from "./routes/postsRouter.ts"
 import subRedditRouter from "./routes/subredditRouter.ts"
 import authRouter from "./routes/authRouter.ts"
 import userRouter from "./routes/userRouter.ts"
 import votesRouter from "./routes/votesRouter.ts"
-import { Session, User } from "lucia";
+import { Session, User } from "npm:lucia";
 import bodyParser from "npm:body-parser";
 
 

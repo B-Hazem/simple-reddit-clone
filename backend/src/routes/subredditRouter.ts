@@ -1,6 +1,6 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq } from "npm:drizzle-orm";
 // @deno-types="npm:@types/express@4.17.21"
-import express from "express";
+import express from "npm:express";
 import { db } from "../db/db.ts";
 import { postTable, subRedditTable, moderatorsTable, bannedUserTable } from "../db/schema.ts";
 import { validateRequest } from "../auth/auth.ts";

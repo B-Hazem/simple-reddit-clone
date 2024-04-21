@@ -1,12 +1,12 @@
 // @deno-types="npm:@types/express@4.17.21"
-import express from "express";
+import express from "npm:express";
 import { db } from "../db/db.ts";
-import { OAuth2RequestError, generateState } from "arctic";
+import { OAuth2RequestError, generateState } from "npm:arctic";
 import { github, lucia, validateRequest } from "../auth/auth.ts";
-import { serializeCookie, parseCookies } from "oslo/cookie"
+import { serializeCookie, parseCookies } from "npm:oslo/cookie"
 import { userTable } from "../db/schema.ts";
-import { eq } from "drizzle-orm";
-import { generateId } from "lucia";
+import { eq } from "npm:drizzle-orm";
+import { generateId } from "npm:lucia";
 
 const authRouter = express.Router()
 

@@ -1,5 +1,5 @@
-import { sql } from "drizzle-orm";
-import {integer, text, sqliteTable, primaryKey} from "drizzle-orm/sqlite-core";
+import { sql } from "npm:drizzle-orm";
+import {integer, text, sqliteTable, primaryKey} from "npm:drizzle-orm/sqlite-core";
 
 export const postTable = sqliteTable("posts", {
     id: integer("id").primaryKey({autoIncrement: true}).unique(),

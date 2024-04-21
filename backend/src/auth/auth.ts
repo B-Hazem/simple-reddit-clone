@@ -1,8 +1,8 @@
 import { DrizzleSQLiteAdapter } from "@lucia-auth/adapter-drizzle";
-import { Lucia } from "lucia";
+import { Lucia } from "npm:lucia";
 import { db } from "../db/db.ts";
 import { sessionTable, userTable } from "../db/schema.ts";
-import { GitHub } from "arctic";
+import { GitHub } from "npm:arctic";
 import { parseCookies } from "npm:oslo@^1.1.2/cookie";
 
 // @deno-types="npm:@types/express@4.17.21"
@@ -13,7 +13,7 @@ const adapter = new DrizzleSQLiteAdapter(db, sessionTable, userTable)
 export const lucia = new Lucia(adapter, {
     sessionCookie: {
         attributes: {
-            secure: Deno.env.get("ENV") === "production",
+            secure: Deno.env.get("ENV") === "prod",
         }
     },
     getUserAttributes: (attributes) => {
