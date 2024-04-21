@@ -1,4 +1,4 @@
-import { DrizzleSQLiteAdapter } from "@lucia-auth/adapter-drizzle";
+import { DrizzleSQLiteAdapter } from "npm:@lucia-auth/adapter-drizzle";
 import { Lucia } from "npm:lucia";
 import { db } from "../db/db.ts";
 import { sessionTable, userTable } from "../db/schema.ts";
